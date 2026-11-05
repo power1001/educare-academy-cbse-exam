@@ -73,25 +73,27 @@ function cleanupProctorMedia() {
   }
 }
 
-// 1:00 AM IST Auto-Purge Scheduler
+// 1:00 AM IST Auto-Purge Scheduler (Only in standalone node server)
 let lastPurgeDate = '';
-setInterval(() => {
-  try {
-    const nowIst = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
-    const currentHour = nowIst.getHours();
-    const currentMinute = nowIst.getMinutes();
-    const currentDateStr = nowIst.toISOString().slice(0, 10);
+if (require.main === module) {
+  setInterval(() => {
+    try {
+      const nowIst = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+      const currentHour = nowIst.getHours();
+      const currentMinute = nowIst.getMinutes();
+      const currentDateStr = nowIst.toISOString().slice(0, 10);
 
-    // Runs automatically at 01:00 AM IST daily
-    if (currentHour === 1 && currentMinute === 0 && lastPurgeDate !== currentDateStr) {
-      console.log(`[DAILY AUTO-PURGE] Triggering 1:00 AM IST proctor media purge for date: ${currentDateStr}...`);
-      cleanupProctorMedia();
-      lastPurgeDate = currentDateStr;
+      // Runs automatically at 01:00 AM IST daily
+      if (currentHour === 1 && currentMinute === 0 && lastPurgeDate !== currentDateStr) {
+        console.log(`[DAILY AUTO-PURGE] Triggering 1:00 AM IST proctor media purge for date: ${currentDateStr}...`);
+        cleanupProctorMedia();
+        lastPurgeDate = currentDateStr;
+      }
+    } catch (e) {
+      console.error('Error in 1:00 AM scheduler interval:', e);
     }
-  } catch (e) {
-    console.error('Error in 1:00 AM scheduler interval:', e);
-  }
-}, 60000);
+  }, 60000);
+}
 
 // In-memory real-time active exam sessions map
 const activeExamSessions = new Map();
