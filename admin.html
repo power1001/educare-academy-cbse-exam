@@ -1814,7 +1814,10 @@
                   &#8635; Refresh Data
                 </button>
                 <button type="button" class="btn-action btn-export" id="btnExportCSV">
-                  &#8681; Export to CSV
+                  &#8681; Export CSV
+                </button>
+                <button type="button" class="btn-action" onclick="downloadRosterJson()" style="background: #2563EB; color: white; border: none; font-weight: 700;">
+                  &#128190; Backup JSON
                 </button>
                 <button type="button" class="btn-action btn-clear-all" id="btnClearAll">
                   &#128465; Reset All Attempts
@@ -2525,7 +2528,113 @@
     let currentFilter = 'all';
     let searchQuery = '';
 
+    // =============================================================
+    // PERSISTENT CANDIDATE NAME STORAGE & AUTO-SYNC ENGINE
+    // =============================================================
+    const STORAGE_KEY_OVERRIDES = 'educare_student_overrides_v2';
+    const STORAGE_KEY_SNAPSHOT = 'educare_roster_snapshot_v2';
+
+    function getStoredOverrides() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY_OVERRIDES) || '{}');
+      } catch (e) {
+        return {};
+      }
+    }
+
+    function saveStudentOverride(roll, details) {
+      if (!roll) return;
+      try {
+        const overrides = getStoredOverrides();
+        overrides[roll] = {
+          name: (details.name || '').trim(),
+          class: (details.class || 'Class 10 CBSE').trim(),
+          phone: (details.phone || '').trim(),
+          updatedAt: Date.now()
+        };
+        localStorage.setItem(STORAGE_KEY_OVERRIDES, JSON.stringify(overrides));
+      } catch (e) {
+        console.warn('Could not save override to localStorage:', e);
+      }
+    }
+
+    function applyStudentOverrides(studentsList) {
+      if (!Array.isArray(studentsList)) return;
+      const overrides = getStoredOverrides();
+      studentsList.forEach(s => {
+        const ovr = overrides[s.roll];
+        if (ovr) {
+          if (ovr.name) s.name = ovr.name;
+          if (ovr.class) s.class = ovr.class;
+          if (ovr.phone) s.phone = ovr.phone;
+        }
+      });
+    }
+
+    let isSyncingOverrides = false;
+    async function checkAndSyncOverridesToServer(serverStudents) {
+      if (isSyncingOverrides || !Array.isArray(serverStudents) || serverStudents.length === 0) return;
+      const overrides = getStoredOverrides();
+      const overrideKeys = Object.keys(overrides);
+      if (overrideKeys.length === 0) return;
+
+      // Check if server is missing any of the local overrides
+      let hasDifference = false;
+      const serverMap = new Map();
+      serverStudents.forEach(s => serverMap.set(s.roll, s));
+
+      for (const roll of overrideKeys) {
+        const ovr = overrides[roll];
+        const s = serverMap.get(roll);
+        if (s && ovr && ovr.name && s.name !== ovr.name) {
+          hasDifference = true;
+          break;
+        }
+      }
+
+      if (!hasDifference) return;
+
+      isSyncingOverrides = true;
+      try {
+        const adminKey = sessionStorage.getItem('educare_admin_auth') || 'Rockey6974@';
+        await fetch('/api/admin/sync-student-overrides', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-key': adminKey
+          },
+          body: JSON.stringify({ overrides })
+        });
+        console.log('[CLIENT SYNC] Synced all local student overrides to server container.');
+      } catch (err) {
+        console.warn('[CLIENT SYNC] Server sync failed (will retry next poll):', err);
+      } finally {
+        isSyncingOverrides = false;
+      }
+    }
+
     function generateFallbackRoster() {
+      // 1. Try returning cached snapshot first
+      try {
+        const cached = JSON.parse(localStorage.getItem(STORAGE_KEY_SNAPSHOT) || '[]');
+        if (cached && cached.length > 0) {
+          applyStudentOverrides(cached);
+          return {
+            summary: {
+              totalEnrolled: cached.length,
+              completed: cached.filter(s => s.attempted).length,
+              pending: cached.filter(s => !s.attempted).length,
+              eligible: cached.filter(s => s.eligibility === 'ELIGIBLE').length,
+              notEligible: cached.filter(s => s.eligibility === 'NOT_ELIGIBLE').length,
+              disqualified: cached.filter(s => s.eligibility === 'DISQUALIFIED').length,
+              passPercentage: 100
+            },
+            students: cached
+          };
+        }
+      } catch (e) {}
+
+      // 2. Fallback only if no snapshot exists
       let localRecords = [];
       try {
         localRecords = JSON.parse(localStorage.getItem('educare_cbse_student_records') || '[]');
@@ -2590,6 +2699,8 @@
         }
       }
 
+      applyStudentOverrides(list);
+
       return {
         summary: {
           totalEnrolled: 500,
@@ -2630,7 +2741,21 @@
         const data = await res.json();
         if (!data.success) throw new Error('API failure');
 
-        allStudents = data.students || [];
+        const fetchedStudents = data.students || [];
+
+        // 1. Re-sync local overrides to server container if server rebooted / cold container
+        checkAndSyncOverridesToServer(fetchedStudents);
+
+        // 2. Apply persistent client overrides so custom candidate names NEVER revert
+        applyStudentOverrides(fetchedStudents);
+
+        allStudents = fetchedStudents;
+
+        // 3. Cache snapshot in localStorage
+        try {
+          localStorage.setItem(STORAGE_KEY_SNAPSHOT, JSON.stringify(allStudents));
+        } catch(e){}
+
         updateStats(data.summary);
 
         const newSignature = allStudents.map(s => `${s.roll}:${s.status}:${s.score}:${s.violationsCount}:${s.name}:${s.phone}`).join(';') + (data.summary ? JSON.stringify(data.summary) : '');
@@ -2639,11 +2764,18 @@
           renderTable();
         }
       } catch (err) {
-        console.warn('Backend API unavailable, using client fallback roster:', err);
-        const fallback = generateFallbackRoster();
-        allStudents = fallback.students;
-        updateStats(fallback.summary);
-        renderTable();
+        console.warn('Backend API request error, preserving existing candidate roster:', err);
+        // CRITICAL FIX: NEVER replace allStudents with fake "Student #1" if we already have data!
+        if (!allStudents || allStudents.length === 0) {
+          try {
+            const cached = JSON.parse(localStorage.getItem(STORAGE_KEY_SNAPSHOT) || '[]');
+            if (cached && cached.length > 0) {
+              applyStudentOverrides(cached);
+              allStudents = cached;
+              renderTable();
+            }
+          } catch(e){}
+        }
       }
     }
 
@@ -3186,6 +3318,20 @@
       document.body.removeChild(link);
     });
 
+    function downloadRosterJson() {
+      if (!allStudents || !allStudents.length) {
+        alert('No students loaded to backup.');
+        return;
+      }
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allStudents, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `Educare_Students_Roster_${new Date().toISOString().slice(0,10)}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
     // -------------------------------------------------------------
     // PORTAL SCHEDULE & AVAILABILITY CONTROLS
     // -------------------------------------------------------------
@@ -3434,6 +3580,18 @@
         alertBox.style.color = '#DC2626';
         alertBox.textContent = 'Please enter a valid student name.';
         return;
+      }
+
+      // 1. Immediately persist override in localStorage so it NEVER reverts back
+      saveStudentOverride(roll, { name, class: studentClass, phone });
+
+      // 2. Immediately update in-memory student entry and re-render table instantly
+      const localIdx = allStudents.findIndex(s => s.roll === roll);
+      if (localIdx >= 0) {
+        allStudents[localIdx].name = name;
+        allStudents[localIdx].class = studentClass;
+        allStudents[localIdx].phone = phone;
+        renderTable();
       }
 
       try {

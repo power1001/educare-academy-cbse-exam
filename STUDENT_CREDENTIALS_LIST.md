@@ -6,7 +6,7 @@
 
 | Serial | Student Name | Roll Number | Password | Class | Phone | Status |
 |:---:|:---|:---:|:---:|:---:|:---:|:---:|
-| 1 | Abhinav singh | `26CBSEBRDD2A` | `Edu@26` | Class 10 CBSE | 9953819830 | ACTIVE |
+| 1 | Abhinav Singh | `26CBSEBRDD2A` | `Edu@26` | Class 10 CBSE | 9953819830 | ACTIVE |
 | 2 | Shivam Singh | `26CBSEBRDGPF` | `Edu@26` | Class 10 CBSE | - | ACTIVE |
 | 3 | Aditya Bose | `26CBSEBRD9LN` | `Edu@26` | Class 10 CBSE | - | ACTIVE |
 | 4 | Ishaan Jha | `26CBSEBRDHP8` | `Edu@26` | Class 10 CBSE | - | ACTIVE |

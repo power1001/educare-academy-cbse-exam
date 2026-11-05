@@ -386,6 +386,9 @@ function saveStudentRoster(roster) {
           fs.writeFileSync(PACKAGE_FILE, JSON.stringify(pkg, null, 2), 'utf8');
         }
       }
+      if (inMemoryPackageConfig && inMemoryPackageConfig.students) {
+        inMemoryPackageConfig.students = roster;
+      }
 
       // 2. Sync STUDENT_CREDENTIALS_LIST.csv
       const csvPath = path.join(__dirname, 'STUDENT_CREDENTIALS_LIST.csv');
@@ -1702,6 +1705,18 @@ async function requestHandler(req, res) {
         if (body.phone) roster[idx].phone = body.phone;
         if (body.status) roster[idx].status = body.status;
         saveStudentRoster(roster);
+
+        // Also update name in completed_students.json if candidate previously completed test
+        try {
+          const completed = getCompletedStudents();
+          const cIdx = completed.findIndex(c => c.roll === roll);
+          if (cIdx >= 0) {
+            completed[cIdx].name = name;
+            if (body.phone) completed[cIdx].phone = body.phone;
+            saveCompletedStudents(completed);
+          }
+        } catch (cErr) {}
+
         console.log(`[STUDENT UPDATED] Slot #${roster[idx].serial}: ${name} (${roll}) | Roll & Password remain locked.`);
         sendJson(res, 200, {
           success: true,
@@ -1715,6 +1730,63 @@ async function requestHandler(req, res) {
     } catch (err) {
       console.error('Error updating student:', err);
       sendJson(res, 500, { success: false, message: 'Server error updating student.' });
+      return;
+    }
+  }
+
+  // 10c-2. POST /api/admin/sync-student-overrides (Bi-directional sync of client localStorage overrides to server)
+  if (req.method === 'POST' && reqPath === '/api/admin/sync-student-overrides') {
+    try {
+      const body = await readJsonBody(req);
+      if (!verifyAdminAuth(req, body, queryStr)) {
+        sendJson(res, 401, { success: false, error: 'UNAUTHORIZED_ADMIN', message: '🚫 Admin Authorization Required.' });
+        return;
+      }
+      const overrides = body.overrides || {};
+      const roster = getStudentRoster();
+      let updatedCount = 0;
+
+      for (const [rawRoll, data] of Object.entries(overrides)) {
+        const roll = normalizeRollNumber(rawRoll);
+        const idx = roster.findIndex(s => s.roll === roll);
+        if (idx >= 0 && data && data.name) {
+          const cleanName = data.name.trim();
+          if (cleanName && roster[idx].name !== cleanName) {
+            roster[idx].name = cleanName;
+            updatedCount++;
+          }
+          if (data.class) roster[idx].class = data.class.trim();
+          if (data.phone) roster[idx].phone = data.phone.trim();
+          if (data.status) roster[idx].status = data.status.trim();
+        }
+      }
+
+      if (updatedCount > 0) {
+        saveStudentRoster(roster);
+        try {
+          const completed = getCompletedStudents();
+          let cUpdated = false;
+          completed.forEach(c => {
+            const ovr = overrides[c.roll];
+            if (ovr && ovr.name && c.name !== ovr.name) {
+              c.name = ovr.name;
+              cUpdated = true;
+            }
+          });
+          if (cUpdated) saveCompletedStudents(completed);
+        } catch (e) {}
+      }
+
+      console.log(`[OVERRIDES SYNCED] Successfully synced ${updatedCount} student overrides to server roster.`);
+      sendJson(res, 200, {
+        success: true,
+        message: `Synced ${updatedCount} student overrides to server memory & storage.`,
+        updatedCount
+      });
+      return;
+    } catch (err) {
+      console.error('Error syncing student overrides:', err);
+      sendJson(res, 500, { success: false, message: 'Server error syncing overrides.' });
       return;
     }
   }
