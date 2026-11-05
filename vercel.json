@@ -1,6 +1,17 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "cleanUrls": true,
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive, nosnippet" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+      ]
+    }
+  ],
   "rewrites": [
     {
       "source": "/admin",
@@ -13,6 +24,18 @@
     {
       "source": "/api/(.*)",
       "destination": "/api?_api_path=$1"
+    },
+    {
+      "source": "/(.*)\\.(json|csv|md|log|env)",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/server.js",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/(pdf_generator|question_manager|ncert_question_scraper)\\.js",
+      "destination": "/index.html"
     }
   ]
 }

@@ -474,7 +474,9 @@ function sendJson(res, statusCode, data) {
     'Cache-Control': 'no-cache, no-store, must-revalidate',
     'Access-Control-Allow-Origin': '*',
     'X-Content-Type-Options': 'nosniff',
-    'Referrer-Policy': 'no-referrer'
+    'X-Frame-Options': 'SAMEORIGIN',
+    'X-Robots-Tag': 'noindex, nofollow, noarchive, nosnippet',
+    'Referrer-Policy': 'strict-origin-when-cross-origin'
   });
   res.end(JSON.stringify(data));
 }
@@ -1486,9 +1488,11 @@ async function requestHandler(req, res) {
 
         return {
           serial: s.serial,
-          name: rec.name || `Student #${s.serial}`,
+          name: s.name || rec.name || `Student #${s.serial}`,
           roll: s.roll,
           password: s.password,
+          phone: s.phone || '',
+          class: s.class || 'Class 10 CBSE',
           photoUrl: rec.photoUrl || '',
           videoUrl: rec.videoUrl || '',
           videoSize: rec.videoSize || 0,
@@ -1513,9 +1517,11 @@ async function requestHandler(req, res) {
         inProgressCount++;
         return {
           serial: s.serial,
-          name: active.name || `Student #${s.serial}`,
+          name: s.name || active.name || `Student #${s.serial}`,
           roll: s.roll,
           password: s.password,
+          phone: s.phone || '',
+          class: s.class || 'Class 10 CBSE',
           photoUrl: active.photoUrl || '',
           videoUrl: '',
           videoSize: 0,
@@ -1540,6 +1546,8 @@ async function requestHandler(req, res) {
         name: s.name || `Student #${s.serial}`,
         roll: s.roll,
         password: s.password,
+        phone: s.phone || '',
+        class: s.class || 'Class 10 CBSE',
         photoUrl: '',
         videoUrl: '',
         videoSize: 0,
@@ -1926,7 +1934,7 @@ async function requestHandler(req, res) {
   }
 
   // -----------------------------------------------------------
-  // STATIC FILE SERVING
+  // ANTI-SCRAPING & SECURITY FIREWALL (Strict Public Whitelist)
   // -----------------------------------------------------------
   let serveFile = reqPath;
   if (serveFile === '/' || serveFile === '') {
@@ -1936,6 +1944,37 @@ async function requestHandler(req, res) {
   } else if (serveFile === '/question-paper' || serveFile === '/question-paper/') {
     serveFile = '/question-paper.html';
   }
+
+  // Strictly Whitelisted Public Static Files
+  const ALLOWED_STATIC_FILES = new Set([
+    '/index.html',
+    '/admin.html',
+    '/question-paper.html',
+    '/style.css',
+    '/app.js',
+    '/robots.txt',
+    '/favicon.ico'
+  ]);
+
+  // Block any scraper/attacker attempt to access source code, lists, or database files
+  const isDirectFileBlocked = !ALLOWED_STATIC_FILES.has(serveFile) &&
+    !serveFile.startsWith('/records/videos/') &&
+    !serveFile.startsWith('/records/photos/');
+
+  if (isDirectFileBlocked) {
+    res.writeHead(403, {
+      'Content-Type': 'application/json; charset=utf-8',
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+      'X-Robots-Tag': 'noindex, nofollow, noarchive, nosnippet'
+    });
+    res.end(JSON.stringify({
+      error: 'ACCESS_DENIED',
+      message: '🚫 Direct file access is strictly blocked by Educare Security Firewall.'
+    }));
+    return;
+  }
+
   const filePath = path.join(PUBLIC_DIR, serveFile);
 
   if (!filePath.startsWith(PUBLIC_DIR)) {
