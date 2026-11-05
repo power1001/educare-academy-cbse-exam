@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Educare Academy - CBSE Class 10th Science Assessment Portal</title>
+  <link rel="stylesheet" href="style.css?v=20261105_05">
+  <style>
+    /* Educare Academy Custom Enhancements */
+    .brand-logo-badge {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #1E3A8A, #0F172A);
+      border: 2px solid #F59E0B;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    }
+    .brand-logo-badge svg {
+      width: 32px;
+      height: 32px;
+    }
+    .chapter-tag-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #FEF3C7;
+      color: #92400E;
+      border: 1px solid #FCD34D;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    /* Real-Time Examiner Lock Warning Modal */
+    .examiner-lock-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(8px);
+      z-index: 999999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      animation: fadeIn 0.3s ease;
+    }
+    .examiner-lock-overlay.active {
+      display: flex !important;
+    }
+    .examiner-lock-box {
+      background: #FFFFFF;
+      color: #0F172A;
+      max-width: 580px;
+      width: 100%;
+      border-radius: 16px;
+      padding: 32px 28px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+      border-top: 8px solid #DC2626;
+      text-align: center;
+      animation: slideDown 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .lock-icon-badge {
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 18px auto;
+      background: #FEE2E2;
+      border: 3px solid #EF4444;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      color: #DC2626;
+      animation: pulseAlert 2s infinite;
+    }
+    @keyframes pulseAlert {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
+      50% { transform: scale(1.05); box-shadow: 0 0 0 14px rgba(220, 38, 38, 0); }
+    }
+    .examiner-lock-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: #991B1B;
+      margin-bottom: 8px;
+      line-height: 1.3;
+    }
+    .examiner-lock-subhindi {
+      font-size: 15px;
+      color: #B91C1C;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    .examiner-lock-msg {
+      background: #FEF2F2;
+      border: 1px dashed #F87171;
+      padding: 14px 16px;
+      border-radius: 10px;
+      font-size: 14px;
+      color: #334155;
+      line-height: 1.5;
+      margin-bottom: 22px;
+    }
+    .examiner-contact-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #1E3A8A;
+      color: #FFFFFF;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .examiner-contact-pill:hover {
+      background: #1D4ED8;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes slideDown {
+      from { transform: translateY(-30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    /* Printable Marksheet Elements */
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #printableScorecardSection, #printableScorecardSection * {
+        visibility: visible;
+      }
+      #printableScorecardSection {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        background: #fff;
+        padding: 20px;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Official Header -->
+  <header class="official-header" id="officialHeader">
+    <div class="header-inner">
+      <div class="header-branding">
+        <div class="brand-logo-badge">
+          <!-- Academic Graduation Cap & Book SVG -->
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L1 7L12 12L23 7L12 2Z" fill="#F59E0B" stroke="#FBBF24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M5 10V16C5 18.5 8.13 21 12 21C15.87 21 19 18.5 19 16V10" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M23 7V15" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="agency-title-block">
+          <div class="agency-hindi-sub">एजुकेयर एकेडमी &bull; सीबीएसई कक्षा 10वीं विज्ञान मूल्यांकन</div>
+          <h1 class="agency-main-name">EDUCARE ACADEMY</h1>
+          <div class="agency-dept-tag">CBSE Class 10th Board &bull; Daily Science Chapter Assessment Portal</div>
+        </div>
+      </div>
+
+      <div class="header-right-meta">
+        <div class="official-portal-schedule" id="headerPortalBadge">
+          <span class="portal-status-dot" id="headerPortalDot"></span>
+          <span class="portal-status-txt" id="headerPortalTxt">Portal Open &bull; Daily Assessment Active</span>
+        </div>
+        <div class="official-code-tag">
+          <span class="tag-label">Active Chapter:</span>
+          <span class="tag-val" id="headerActiveChapter">Chemical Reactions</span>
+        </div>
+        <div class="official-security-status" id="headerSecurityStatus">
+          <span class="status-dot"></span>
+          <span class="status-txt">System Ready</span>
+        </div>
+      </div>
+    </div>
+    <!-- Tricolor accent border -->
+    <div class="tricolor-bar">
+      <span class="saffron"></span>
+      <span class="white"></span>
+      <span class="green"></span>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="app-main">
+
+    <!-- ============================================== -->
+    <!-- STEP 0: EXAM INSTRUCTIONS & GUIDELINES (DOs & DONTs) -->
+    <!-- ============================================== -->
+    <section class="screen-view active" id="welcomeInstructionsScreen">
+      <div class="dos-donts-container">
+        
+        <!-- Portal Schedule / Cutoff Advisory Banner -->
+        <div class="portal-schedule-banner open" id="portalScheduleBanner">
+          <div class="schedule-banner-icon" id="portalScheduleIcon">&#128197;</div>
+          <div class="schedule-banner-content">
+            <div class="schedule-banner-title" id="portalScheduleTitle">
+              EDUCARE ACADEMY &bull; CBSE CLASS 10TH SCIENCE DAILY CHAPTER TEST
+            </div>
+            <div class="schedule-banner-desc" id="portalScheduleDesc">
+              Students must complete today's chapter test before the scheduled closing window. Only 1 attempt is allowed per student per daily assessment.
+            </div>
+            <div class="schedule-countdown-badge" id="portalScheduleCountdownBadge">
+              &#9203; Access Time Left: <strong id="portalScheduleCountdown">Calculating...</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Official Announcement Header -->
+        <div class="announcement-banner">
+          <div class="banner-icon">&#128227;</div>
+          <div class="banner-text">
+            <strong>EDUCARE ACADEMY &bull; CBSE 10TH BOARD EXAMINATION DESK</strong><br>
+            Daily Science Chapter Assessment - General Instructions &amp; Mandatory Guidelines
+          </div>
+        </div>
+
+        <!-- DO's and DON'Ts Grid -->
+        <div class="dos-donts-grid">
+          <!-- DO's Card -->
+          <div class="do-card">
+            <h3>
+              <span class="icon-do">&#10004;</span>
+              DO's - Essential Examination Guidelines
+            </h3>
+            <ul class="instruction-checklist">
+              <li>
+                <span class="icon-do">&#10004;</span>
+                <div><strong>CBSE Science Syllabus:</strong> Test contains 25 Multiple Choice Questions (MCQs) curated strictly according to NCERT CBSE Class 10 Science curriculum.</div>
+              </li>
+              <li>
+                <span class="icon-do">&#10004;</span>
+                <div><strong>Quiet &amp; Well-Lit Environment:</strong> Sit alone in a well-illuminated room facing the screen with webcam active for automated proctoring verification.</div>
+              </li>
+              <li>
+                <span class="icon-do">&#10004;</span>
+                <div><strong>Duration (25 Minutes) &amp; Early Submit:</strong> Total duration is 25 minutes (1 minute per question). You can submit early at any point once completed.</div>
+              </li>
+              <li>
+                <span class="icon-do">&#10004;</span>
+                <div><strong>Save Every Response:</strong> After selecting an option for each question, click <strong>"Save &amp; Next"</strong> to record your response.</div>
+              </li>
+              <li>
+                <span class="icon-do">&#10004;</span>
+                <div><strong>Instant Marksheet &amp; Solutions:</strong> Immediately upon submission, your scorecard with marks, percentage, and detailed chapter-wise explanations will be generated.</div>
+              </li>
+            </ul>
+          </div>
+
+          <!-- DON'Ts Card -->
+          <div class="dont-card">
+            <h3>
+              <span class="icon-dont">&#10008;</span>
+              DON'Ts - Strict Prohibitions &amp; Integrity Rules
+            </h3>
+            <ul class="instruction-checklist">
+              <li>
+                <span class="icon-dont">&#10008;</span>
+                <div><strong>No Tab or Window Switching:</strong> Navigating away from the exam tab or opening search engines/calculators will register a proctoring violation. 3 warnings result in automatic submission.</div>
+              </li>
+              <li>
+                <span class="icon-dont">&#10008;</span>
+                <div><strong>Strict Single Attempt Policy:</strong> Each registered student gets only 1 attempt per daily chapter test. For re-attempt permissions, request your teacher to reset from the admin portal.</div>
+              </li>
+              <li>
+                <span class="icon-dont">&#10008;</span>
+                <div><strong>No Impersonation:</strong> Only authorized enrolled students (e.g. Abhinav Singh) using their assigned Roll Number and Password are permitted to participate.</div>
+              </li>
+              <li>
+                <span class="icon-dont">&#10008;</span>
+                <div><strong>No Unauthorized Assistance:</strong> Using textbooks, notes, external help, or mobile devices during the live test is strictly prohibited.</div>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Exam Structure Summary Strip -->
+        <div class="welcome-summary-strip">
+          <div class="summary-item">
+            <span class="label">Total Questions:</span>
+            <span class="val" style="color: #0B2545; font-weight: 700;">25 CBSE MCQs</span>
+          </div>
+          <div class="summary-item">
+            <span class="label">Duration:</span>
+            <span class="val" style="color: #DC2626; font-weight: 700;">25:00 Minutes</span>
+          </div>
+          <div class="summary-item">
+            <span class="label">Maximum Marks:</span>
+            <span class="val" style="color: #15803D; font-weight: 700;">25 Marks (+1 per correct)</span>
+          </div>
+          <div class="summary-item">
+            <span class="label">Negative Marking:</span>
+            <span class="val" style="color: #0B2545; font-weight: 700;">None (0 Penalty)</span>
+          </div>
+        </div>
+
+        <!-- Declaration Checkbox -->
+        <div class="welcome-declaration-box">
+          <input type="checkbox" id="agreeWelcomeCheckbox">
+          <label for="agreeWelcomeCheckbox">
+            I have carefully read, understood, and agree to abide by all the Educare Academy CBSE Class 10th Science Assessment instructions. I understand that the examination is actively proctored and tab-switches are logged.
+          </label>
+        </div>
+
+        <!-- Action Button to Proceed to Login -->
+        <div style="display: flex; justify-content: flex-end; align-items: center; gap: 16px; margin-top: 10px;">
+          <div id="welcomeHelpNote" style="font-size: 12.5px; color: #DC2626; font-weight: 500;">
+            &#9888; Please check the declaration box above to proceed to candidate login
+          </div>
+          <button type="button" class="btn-primary" id="btnProceedToLogin" disabled style="padding: 12px 28px; font-size: 15px; font-weight: 700;">
+            Proceed to Student Login &amp; Proctoring &rarr;
+          </button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- STEP 1: CANDIDATE REGISTRATION & SYSTEM TEST  -->
+    <!-- ============================================== -->
+    <section class="screen-view" id="registrationScreen">
+      <div class="registration-container">
+        
+        <div class="announcement-banner">
+          <div class="banner-icon">&#9432;</div>
+          <div class="banner-text">
+            <strong>OFFICIAL ADVISORY:</strong> This assessment is conducted by <strong>Educare Academy</strong> for CBSE Class 10th Science. Please enter your registered Student Name, Roll Number, and Password to proceed.
+          </div>
+        </div>
+
+        <div class="registration-grid">
+          <!-- Candidate Information Form -->
+          <div class="official-card form-card">
+            <div class="card-header">
+              <h2>Student Examination Login</h2>
+              <p>Educare Academy - CBSE Class 10th Science Assessment Portal</p>
+            </div>
+            
+            <form id="candidateForm" class="candidate-form" onsubmit="return false;">
+              <!-- Student Full Name -->
+              <div class="form-group single-field">
+                <label for="candName">Student Full Name <span class="required">*</span></label>
+                <input type="text" id="candName" placeholder="enter your name" autocomplete="off" required>
+              </div>
+
+              <!-- Roll Number & Password in Row -->
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="candRoll" style="font-weight: 700; color: #0B2545;">Roll Number <span class="required">*</span></label>
+                  <input type="text" id="candRoll" class="cand-roll-input-large" placeholder="enter your roll number" autocomplete="off" required>
+                </div>
+                <div class="form-group password-group">
+                  <label for="candPassword" style="font-weight: 700; color: #0B2545;">Exam Password <span class="required">*</span></label>
+                  <div class="password-input-wrapper">
+                    <input type="password" id="candPassword" class="cand-password-input-large" placeholder="enter your password" autocomplete="new-password" required>
+                    <button type="button" class="btn-toggle-password" id="btnTogglePassword" title="Show / Hide Password">
+                      <span id="pwdEyeIcon">&#128065;</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Single Attempt Security Alert -->
+              <div class="single-attempt-notice" style="background: #EFF6FF; border: 1px solid #BFDBFE; color: #1E40AF; padding: 10px 14px; border-radius: 6px; font-size: 12.5px; margin-bottom: 14px;">
+                &#128274; <strong>Strict Single Daily Attempt:</strong> Each student is allowed 1 attempt per test. Once submitted, your score is permanently recorded.
+              </div>
+
+              <!-- Form Validation Notice -->
+              <div id="formValidationError" class="form-validation-error" style="display: none;"></div>
+
+              <div class="exam-summary-box">
+                <div class="summary-item">
+                  <span class="label">Test Syllabus:</span>
+                  <span class="val" id="summaryChapterName">CBSE 10th Science</span>
+                </div>
+                <div class="summary-item">
+                  <span class="label">Total MCQs:</span>
+                  <span class="val">25 Questions</span>
+                </div>
+                <div class="summary-item">
+                  <span class="label">Duration:</span>
+                  <span class="val">25 Minutes (Auto-Submit)</span>
+                </div>
+                <div class="summary-item">
+                  <span class="label">Assigned Teacher:</span>
+                  <span class="val">Sir (+91 8448467381)</span>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Proctoring & Hardware Check Card -->
+          <div class="official-card hardware-card">
+            <div class="card-header">
+              <h2>Candidate Photo &amp; Proctoring Verification</h2>
+              <p>Live camera and candidate photo are mandatory for verification</p>
+            </div>
+
+            <div class="hardware-preview-box">
+              <div class="video-preview-wrapper" id="videoPreviewWrapper">
+                <video id="setupVideoFeed" autoplay playsinline muted></video>
+                <div class="video-overlay-guide">
+                  <div class="face-oval-guide"></div>
+                  <span class="guide-text">Position face inside boundary</span>
+                </div>
+                <div class="video-status-overlay" id="videoStatusOverlay">
+                  <div class="camera-icon-large">&#128247;</div>
+                  <p id="cameraStatusText">Camera access not started</p>
+                </div>
+              </div>
+
+              <!-- Captured Candidate Photo Preview Box -->
+              <div class="photo-capture-preview-box" id="photoCapturePreviewBox" style="display: none; position: relative; margin-top: 10px; border-radius: 8px; overflow: hidden; border: 2px solid #10B981; background: #0F172A; text-align: center;">
+                <img id="capturedCandidatePhoto" src="" alt="Captured Candidate Photo" style="width: 100%; max-height: 200px; object-fit: cover; display: block;">
+                <div style="position: absolute; bottom: 8px; left: 8px; right: 8px; background: rgba(16, 185, 129, 0.95); color: #FFFFFF; font-size: 12px; font-weight: 700; padding: 5px 8px; border-radius: 4px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                  <span>✔</span> Candidate Photo Verified (पहचान सत्यापित)
+                </div>
+              </div>
+
+              <!-- Hardware Checklist Items -->
+              <div class="hardware-checks-list" style="margin-top: 12px;">
+                <div class="check-item" id="chkCamera">
+                  <div class="check-icon">&#9675;</div>
+                  <div class="check-details">
+                    <span class="check-title">Webcam Proctoring</span>
+                    <span class="check-desc">Identity verification enabled</span>
+                  </div>
+                </div>
+                <div class="check-item" id="chkPhoto">
+                  <div class="check-icon">&#9675;</div>
+                  <div class="check-details">
+                    <span class="check-title">Photo Identity Verification</span>
+                    <span class="check-desc" id="chkPhotoDesc">Photo capture required</span>
+                  </div>
+                </div>
+                <div class="check-item" id="chkMic">
+                  <div class="check-icon">&#9675;</div>
+                  <div class="check-details">
+                    <span class="check-title">Microphone Audio</span>
+                    <span class="check-desc">Surveillance stream online</span>
+                  </div>
+                </div>
+                <div class="check-item" id="chkBrowser">
+                  <div class="check-icon" style="color: #10B981;">&#10004;</div>
+                  <div class="check-details">
+                    <span class="check-title">Browser Compatibility</span>
+                    <span class="check-desc">Secure CBT Environment verified</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Camera and Photo Action Buttons -->
+              <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px;">
+                <button type="button" class="btn-secondary" id="btnRequestMedia" style="width: 100%; padding: 12px; font-size: 14px; font-weight: 700;">
+                  &#128247; 1. Enable Camera Stream
+                </button>
+                <button type="button" class="btn-primary" id="btnCapturePhoto" style="width: 100%; padding: 12px; font-size: 15px; font-weight: 800; display: none; background: #059669; border-color: #059669;">
+                  &#128248; 2. Capture Candidate Photo (फोटो खींचें)
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Start Assessment CTA Bar (Enlarged Proceed Button) -->
+        <div class="start-action-bar">
+          <div class="terms-row">
+            <input type="checkbox" id="agreeTermsCheckbox">
+            <label for="agreeTermsCheckbox">
+              I certify that I am the authorized student named above. I am ready to begin my 25-minute CBSE Class 10th Science Chapter Assessment.
+            </label>
+          </div>
+          <button type="button" class="btn-primary btn-start-exam" id="btnStartExam" disabled>
+            &#128640; PROCEED TO TEST &amp; START EXAM &rarr;
+          </button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- STEP 2: LIVE COMPUTER BASED TEST (CBT) SCREEN -->
+    <!-- ============================================== -->
+    <section class="screen-view" id="examScreen">
+      <div class="exam-layout">
+        
+        <!-- Left: Question & Navigation Section -->
+        <div class="exam-main-panel">
+          
+          <!-- Exam Status Top Bar -->
+          <div class="exam-top-bar">
+            <div class="exam-info-block">
+              <span class="exam-title-badge">Educare Academy &bull; CBSE Class 10 Science</span>
+              <span class="active-chapter-pill" id="examActiveChapterPill">Chapter 1: Chemical Reactions &amp; Equations</span>
+            </div>
+            
+            <div class="exam-timer-wrapper" id="timerWrapper">
+              <div class="timer-icon">&#9201;</div>
+              <div class="timer-digits" id="timerDisplay">25:00</div>
+              <span class="timer-sub">Time Left</span>
+            </div>
+          </div>
+
+          <!-- Question Content Card -->
+          <div class="question-container" id="questionContainer">
+            <div class="question-header">
+              <div class="q-meta">
+                <span class="q-number-badge" id="qNumberBadge">Question 1 of 25</span>
+                <span class="q-marks-tag">+1.00 Marks</span>
+              </div>
+              <div class="q-bilingual-toggle">
+                <button type="button" class="btn-lang-toggle active" id="btnLangEn">English</button>
+                <button type="button" class="btn-lang-toggle" id="btnLangHi">हिंदी</button>
+              </div>
+            </div>
+
+            <div class="question-text" id="questionText">
+              Loading CBSE Class 10th Science assessment questions...
+            </div>
+
+            <!-- Options List -->
+            <div class="options-grid" id="optionsGrid">
+              <!-- Dynamically populated options A, B, C, D -->
+            </div>
+          </div>
+
+          <!-- Bottom Action Buttons Toolbar -->
+          <div class="exam-actions-toolbar">
+            <div class="left-actions">
+              <button type="button" class="btn-tool" id="btnMarkReview">
+                <span class="icon-star">&#9733;</span> Mark for Review
+              </button>
+              <button type="button" class="btn-tool" id="btnClearResponse">
+                Clear Response
+              </button>
+            </div>
+            <div class="right-actions">
+              <button type="button" class="btn-nav" id="btnPrevQuestion" disabled>
+                &larr; Previous
+              </button>
+              <button type="button" class="btn-nav btn-save-next" id="btnSaveNext">
+                Save &amp; Next &rarr;
+              </button>
+              <button type="button" class="btn-submit-exam" id="btnOpenSubmitModal">
+                Submit Test &#10004;
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right: Candidate Profile & Question Palette -->
+        <aside class="exam-sidebar">
+          
+          <!-- Background Hidden Video Stream (Keeps 100 kbps proctoring video recording & snapshots active without displaying camera frame to student) -->
+          <video id="liveExamVideoFeed" autoplay playsinline muted style="position: fixed; top: -9999px; left: -9999px; width: 320px; height: 240px; opacity: 0; pointer-events: none; z-index: -9999;"></video>
+
+          <!-- Candidate Official CBT Profile Badge -->
+          <div class="proctor-widget" style="padding: 16px 18px; border-radius: 8px; background: #FFFFFF; border: 1px solid #E2E8F0; box-shadow: 0 2px 8px rgba(11, 37, 69, 0.04); margin-bottom: 14px;">
+            <div class="proctor-student-meta">
+              <div style="font-size: 11px; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px;">CBT Candidate Profile</div>
+              <div class="student-name-val" id="sidebarStudentName" style="font-size: 17px; font-weight: 800; color: #0B2545; margin-top: 4px;">Student Name</div>
+              <div class="student-roll-val" id="sidebarStudentRoll" style="font-family: monospace; font-size: 13.5px; font-weight: 700; color: #1D4ED8; margin-top: 2px;">26CBSEBRD---</div>
+              <div class="proctor-live-indicator-badge" style="display: inline-flex; align-items: center; gap: 6px; background: #DCFCE7; color: #15803D; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; margin-top: 8px;">
+                <span class="rec-dot" style="width: 8px; height: 8px; background: #16A34A; border-radius: 50%; display: inline-block;"></span>
+                LIVE PROCTORED ACTIVE
+              </div>
+              <div class="violation-counter" id="violationCounter" style="display: none; margin-top: 8px; background: #FEF2F2; color: #DC2626; padding: 4px 8px; border-radius: 4px; font-size: 11.5px; font-weight: 700; border: 1px solid #FECACA;">
+                &#9888; Tab Violations: <strong id="violationCount">0</strong> / 3
+              </div>
+            </div>
+          </div>
+
+          <!-- Question Palette Legend -->
+          <div class="palette-legend">
+            <div class="legend-item"><span class="legend-color answered"></span> Answered</div>
+            <div class="legend-item"><span class="legend-color unanswered"></span> Not Answered</div>
+            <div class="legend-item"><span class="legend-color review"></span> Review</div>
+            <div class="legend-item"><span class="legend-color unvisited"></span> Not Visited</div>
+          </div>
+
+          <!-- Question Numbers Grid (1 to 25) -->
+          <div class="palette-container">
+            <div class="palette-title">Question Palette (25 MCQs)</div>
+            <div class="palette-grid" id="questionPaletteGrid">
+              <!-- Dynamically populated buttons 1..25 -->
+            </div>
+          </div>
+
+        </aside>
+
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- STEP 3: RESULT & OFFICIAL MARKSHEET SCREEN    -->
+    <!-- ============================================== -->
+    <section class="screen-view" id="resultScreen">
+      <div class="result-container" id="printableScorecardSection">
+        
+        <!-- ============================================== -->
+        <!-- FRONT PAGE: OFFICIAL CBSE SCORECARD & PROFILE  -->
+        <!-- Printed strictly as Page 1 with page-break-after -->
+        <!-- ============================================== -->
+        <div class="result-certificate-box print-front-page">
+          
+          <!-- Educare Academy Official Header -->
+          <div class="cert-header">
+            <div class="brand-logo-badge" style="margin: 0 auto 10px auto;">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L1 7L12 12L23 7L12 2Z" fill="#F59E0B" stroke="#FBBF24" stroke-width="1.5"/>
+                <path d="M5 10V16C5 18.5 8.13 21 12 21C15.87 21 19 18.5 19 16V10" stroke="#FFFFFF" stroke-width="2"/>
+              </svg>
+            </div>
+            <h1 class="cert-inst-title">EDUCARE ACADEMY</h1>
+            <p class="cert-inst-tagline">Center for Academic Excellence &bull; Premier CBSE Board Coaching Institute</p>
+            <div class="cert-cbse-title">
+              CENTRAL BOARD OF SECONDARY EDUCATION (CBSE) PATTERN
+              <br>
+              CLASS 10th SCIENCE DAILY CHAPTER-WISE CONTINUOUS ASSESSMENT
+            </div>
+            <div class="cert-report-badge">
+              OFFICIAL CANDIDATE EVALUATION &amp; PERFORMANCE MARKSHEET
+            </div>
+          </div>
+
+          <!-- CBSE Board Assessment Overview & Policy Advisory -->
+          <div class="cert-cbse-info-card">
+            <div class="cbse-pill-tag">CBSE Examination Framework &bull; NCERT Science Syllabus</div>
+            <p>
+              This evaluation is conducted under the continuous assessment framework strictly adhering to the Central Board of Secondary Education (CBSE) Class 10 Science pattern. It measures objective conceptual mastery, assertion-reasoning, and practical applications across Physics, Chemistry, and Biology. Daily continuous chapter assessments ensure optimal board examination readiness.
+            </p>
+          </div>
+
+          <!-- Candidate Profile & Credential Ledger -->
+          <div class="cert-student-details-grid">
+            <div class="detail-cell">
+              <span class="detail-label">Candidate Full Name:</span>
+              <strong class="detail-value" id="resStudentName">-</strong>
+            </div>
+            <div class="detail-cell">
+              <span class="detail-label">Candidate Roll Number:</span>
+              <strong class="detail-value font-mono" id="resStudentRoll" style="color: #1D4ED8;">-</strong>
+            </div>
+            <div class="detail-cell">
+              <span class="detail-label">Assessed Chapter:</span>
+              <strong class="detail-value" id="resChapterName">-</strong>
+            </div>
+            <div class="detail-cell">
+              <span class="detail-label">Portal Password:</span>
+              <strong class="detail-value font-mono" id="resStudentPassword" style="color: #D97706;">Edu@26</strong>
+            </div>
+            <div class="detail-cell">
+              <span class="detail-label">Candidate Class &amp; Stream:</span>
+              <strong class="detail-value">Class 10 CBSE (Session 2025-2026)</strong>
+            </div>
+            <div class="detail-cell">
+              <span class="detail-label">Submission Date &amp; Timestamp:</span>
+              <strong class="detail-value" id="resSubmitTime">-</strong>
+            </div>
+            <div class="detail-cell">
+              <span class="detail-label">Assessment Mode:</span>
+              <strong class="detail-value">Online CBT Proctored Examination</strong>
+            </div>
+            <div class="detail-cell">
+              <span class="detail-label">Teacher Helpline / Query Desk:</span>
+              <strong class="detail-value" style="color: #059669;">+91 8448467381</strong>
+            </div>
+          </div>
+
+          <!-- Score Highlight Banner -->
+          <div class="score-summary-banner" id="scoreBanner">
+            <div class="score-circle">
+              <span class="score-big" id="resScoreVal">0</span>
+              <span class="score-max">/ 25</span>
+              <span style="font-size: 11px; color: #64748B; font-weight: 600; text-transform: uppercase;">Marks Obtained</span>
+            </div>
+            <div class="score-meta-block">
+              <div class="score-percentage" id="resPercentageVal">0%</div>
+              <div class="score-status-badge" id="resStatusBadge">COMPLETED</div>
+              <p class="score-subtext" id="resFeedbackText">Performance recorded successfully.</p>
+            </div>
+          </div>
+
+          <!-- Detailed Breakdown Metrics -->
+          <div class="metrics-row">
+            <div class="metric-card">
+              <span class="val text-success" id="resCorrectCount">0</span>
+              <span class="lbl">&#10004; Correct (+1)</span>
+            </div>
+            <div class="metric-card">
+              <span class="val text-danger" id="resIncorrectCount">0</span>
+              <span class="lbl">&#10008; Incorrect (0)</span>
+            </div>
+            <div class="metric-card">
+              <span class="val text-muted" id="resUnattemptedCount">0</span>
+              <span class="lbl">&#9675; Unattempted</span>
+            </div>
+            <div class="metric-card">
+              <span class="val text-primary" id="resTimeTakenVal">00:00</span>
+              <span class="lbl">&#9201; Time Taken</span>
+            </div>
+          </div>
+
+          <!-- CBSE Board Advisory & Revision Note -->
+          <div class="cert-advisory-box">
+            <strong>&#128227; CBSE Board Preparation Note:</strong>
+            Thorough understanding of NCERT exemplar problems and consistent MCQ practice are critical for scoring 95%+ in CBSE Board exams. Review the full question-by-question response breakdown on the subsequent pages. For personalized doubt clearance and chapter revisions, contact Educare Academy at <strong>+91 8448467381</strong>.
+          </div>
+
+          <!-- Verification Signatures & Official Institute Seal -->
+          <div class="cert-signatures-row">
+            <div class="sig-block">
+              <div class="sig-line"></div>
+              <span class="sig-label">Candidate Signature</span>
+            </div>
+            <div class="sig-seal-block">
+              <div class="official-seal-stamp">
+                <div class="seal-inner">
+                  <span>EDUCARE ACADEMY</span>
+                  <strong>CBSE CBT VERIFIED</strong>
+                  <small>Academic Session 2025-26</small>
+                </div>
+              </div>
+            </div>
+            <div class="sig-block">
+              <div class="sig-line">
+                <span class="digital-sign-placeholder">&#10004; Digitally Verified</span>
+              </div>
+              <span class="sig-label">Controller of Examinations / Faculty In-charge</span>
+            </div>
+          </div>
+
+        </div> <!-- /print-front-page -->
+
+        <!-- ======================================================= -->
+        <!-- SUBSEQUENT PAGES: COMPLETE QUESTION PAPER & ANSWER KEY  -->
+        <!-- Printed from Page 2 onwards with each question styled   -->
+        <!-- ======================================================= -->
+        <div class="solutions-review-container print-questions-section" id="solutionsReviewContainer">
+          
+          <div class="question-paper-print-header">
+            <div class="qp-header-left">
+              <h2>&#128214; CBSE Class 10 Science &bull; Question Paper &amp; Detailed Evaluation Sheet</h2>
+              <p>NCERT Curriculum &bull; Complete 25 MCQs with Candidate Marked Response, Correct Answer &amp; Solutions</p>
+            </div>
+            <div class="qp-header-right">
+              <span>Candidate: <strong id="qpPrintStudentName">-</strong></span> &bull; 
+              <span>Roll: <strong id="qpPrintStudentRoll">-</strong></span>
+            </div>
+          </div>
+
+          <div id="solutionsList">
+            <!-- Dynamically populated answer review cards for all 25 questions -->
+          </div>
+        </div>
+
+        <!-- Bottom Actions for Student (Hidden during Print) -->
+        <div class="result-actions-bar no-print" style="margin-top: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+          <button type="button" class="btn-primary" onclick="window.print();" style="padding: 12px 26px; font-size: 15px; font-weight: 700; cursor: pointer;">
+            &#128438; Print Official Scorecard &amp; All 25 Questions
+          </button>
+          <a href="/" class="btn-secondary" style="padding: 10px 20px; font-size: 13.5px; text-decoration: none;">
+            &larr; Back to Portal Home
+          </a>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============================================================== -->
+  <!-- REAL-TIME EXAMINER LOCK WARNING POPUP MODAL                     -->
+  <!-- ============================================================== -->
+  <div class="examiner-lock-overlay" id="examinerLockOverlay">
+    <div class="examiner-lock-box">
+      <div class="lock-icon-badge">&#128274;</div>
+      <h2 class="examiner-lock-title">YOUR EXAMINATION HAS BEEN STOPPED BY THE EXAMINER!</h2>
+      <div class="examiner-lock-subhindi">परीक्षा नियंत्रक द्वारा आपकी परीक्षा रोक / बंद कर दी गई है</div>
+      <div class="examiner-lock-msg" id="examinerLockMsg">
+        The Educare Academy CBSE examination portal has been locked or closed by the administrative supervisor. Candidate test submissions and access are currently paused.
+      </div>
+      <div style="margin-bottom: 18px;">
+        <a href="tel:+918448467381" class="examiner-contact-pill">
+          &#128222; Contact Sir: +91 8448467381
+        </a>
+      </div>
+      <small style="color: #64748B; font-size: 12px;">
+        Please wait quietly or contact the examiner for further instructions.
+      </small>
+    </div>
+  </div>
+
+  <!-- Early Submission Confirmation Modal -->
+  <div class="admin-modal-overlay" id="earlySubmitModalOverlay" style="display: none;">
+    <div class="admin-modal-box" style="max-width: 480px; text-align: center; padding: 24px;">
+      <div style="font-size: 40px; color: #2563EB; margin-bottom: 10px;">&#128203;</div>
+      <h3 style="font-size: 18px; font-weight: 800; color: #0B2545; margin-bottom: 8px;">Submit Assessment Now?</h3>
+      <p style="font-size: 13.5px; color: #475569; margin-bottom: 16px;" id="submitModalStatsText">
+        Are you sure you want to finish and submit your test?
+      </p>
+      <div style="display: flex; gap: 10px; justify-content: center;">
+        <button type="button" class="btn-secondary" id="btnCancelSubmitModal" style="padding: 9px 18px;">Resume Test</button>
+        <button type="button" class="btn-primary" id="btnConfirmSubmitModal" style="padding: 9px 22px; background: #16A34A; border-color: #15803D;">Yes, Submit Now</button>
+      </div>
+    </div>
+  </div>
+  <!-- ============================================================== -->
+  <!-- TAB SWITCH 3-ATTEMPTS CANCELLATION BLOCKING POPUP MODAL         -->
+  <!-- ============================================================== -->
+  <div class="tab-switch-modal-backdrop" id="tabSwitchCancelModal">
+    <div class="tab-switch-modal-card">
+      <!-- Cut / Close icon to redirect to main menu -->
+      <button type="button" class="btn-modal-close-cut" id="btnTabCancelClose" title="Cut &amp; Redirect to Main Menu" aria-label="Close and return to Main Menu">&times;</button>
+
+      <div class="modal-ban-icon">&#128683;</div>
+      <h2 style="color: #DC2626; font-size: 22px; font-weight: 800; margin: 8px 0 12px;">परीक्षा निरस्त (Exam Attempt Cancelled)</h2>
+      <div class="tab-cancel-alert-box">
+        <p class="tab-cancel-main-msg">
+          tab switch hone ki wajah se tumhara attempt cancle kar diya gaya hai apne teacher ko contact karo fir se exam dene ke liye
+        </p>
+      </div>
+      <p style="color: #475569; font-size: 13.5px; line-height: 1.5; margin: 12px 0;">
+        आपने परीक्षा के दौरान 3 बार स्क्रीन/टैब बदलने का प्रयास किया। सुरक्षा नियमों के अनुसार आपका टेस्ट स्थायी रूप से रद्द कर दिया गया है।
+      </p>
+      <div class="teacher-contact-pill-box">
+        <div style="font-size: 13px; font-weight: 700; color: #0F172A; margin-bottom: 6px;">&#128222; शिक्षक सहायता केंद्र (Teacher Helpline):</div>
+        <a href="tel:+918448467381" class="btn-call-teacher">&#128222; Call Sir: +91 8448467381</a>
+        <a href="https://wa.me/918448467381?text=Sir%2C%20tab%20switch%20hone%20ki%20wajah%20se%20mera%20exam%20attempt%20cancle%20ho%20gaya%20hai.%20Kripya%20mera%20test%20reset%20karein." target="_blank" class="btn-wa-teacher" id="btnWhatsAppTeacherCancel">
+          &#128172; WhatsApp Sir (+91 8448467381)
+        </a>
+        <button type="button" class="btn-return-main-menu" id="btnReturnMainMenu">
+          &#127968; Main Menu / मुख्य पृष्ठ पर जाएं
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js?v=20261105_05"></script>
+</body>
+</html>

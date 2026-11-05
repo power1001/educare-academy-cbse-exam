@@ -1,0 +1,46 @@
+# Dependency directories
+node_modules/
+package-lock.json
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+.pids
+*.pid
+*.seed
+*.pid.lock
+
+# OS metadata & caches
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE & Editor folders
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.antigravity/
+.antigravity*
+.gemini/
+.gemini*
+
+# Vercel & build outputs
+.vercel
+dist/
+build/
+scratch/
+
+# Confidential Admin Exports
+STUDENT_CREDENTIALS_LIST.csv
+STUDENT_CREDENTIALS_LIST.md
+STUDENT_CREDENTIALS_LIST.pdf
+*.pdf

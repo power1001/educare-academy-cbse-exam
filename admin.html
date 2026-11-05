@@ -1,0 +1,3757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Console - Educare Academy CBSE Class 10th Science Assessment</title>
+  <style>
+    :root {
+      --primary-navy: #0A192F;
+      --secondary-navy: #133E87;
+      --card-bg: #FFFFFF;
+      --text-dark: #0F172A;
+      --text-muted: #64748B;
+      --border-color: #E2E8F0;
+      --pass-green: #15803D;
+      --pass-bg: #DCFCE7;
+      --fail-red: #B91C1C;
+      --fail-bg: #FEE2E2;
+      --warn-orange: #C2410C;
+      --warn-bg: #FFEDD5;
+      --pending-gray: #475569;
+      --pending-bg: #F1F5F9;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0B192C;
+      color: #F8FAFC;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      padding: 0;
+    }
+
+    /* =========================================================
+       ADMIN LAYOUT & SIDEBAR NAVIGATION (MODERN TABS & DRAWER)
+       ========================================================= */
+    .admin-layout-wrapper {
+      display: flex;
+      min-height: 100vh;
+      background: #0B192C;
+      width: 100%;
+    }
+
+    /* Left Sidebar */
+    .admin-sidebar {
+      width: 260px;
+      min-width: 260px;
+      background: #071324;
+      border-right: 1.5px solid #1E293B;
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      z-index: 1000;
+      transition: width 0.25s ease, transform 0.25s ease;
+      box-shadow: 4px 0 15px rgba(0,0,0,0.2);
+    }
+
+    .admin-sidebar-header {
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1.5px solid #1E293B;
+      background: #050E1B;
+    }
+    .admin-sidebar-header .sidebar-crest {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #1E3A8A, #0F172A);
+      border: 1.5px solid #F59E0B;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 19px;
+      color: #FBBF24;
+      flex-shrink: 0;
+    }
+    .sidebar-header-titles {
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    .sidebar-header-titles .brand-name {
+      font-size: 15px;
+      font-weight: 800;
+      color: #FFFFFF;
+      letter-spacing: 0.5px;
+      display: block;
+    }
+    .sidebar-header-titles .brand-desc {
+      font-size: 11px;
+      color: #94A3B8;
+      font-weight: 500;
+      display: block;
+    }
+
+    /* Navigation Menu */
+    .admin-sidebar-nav {
+      flex: 1;
+      padding: 16px 12px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .nav-category-label {
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #64748B;
+      font-weight: 700;
+      padding: 10px 12px 4px 12px;
+    }
+
+    .admin-sidebar-nav-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 14px;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      color: #94A3B8;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.18s ease;
+      white-space: nowrap;
+      position: relative;
+    }
+
+    .admin-sidebar-nav-btn:hover {
+      background: #112240;
+      color: #F8FAFC;
+      border-color: #1E3A8A;
+    }
+
+    .admin-sidebar-nav-btn.active {
+      background: linear-gradient(90deg, #1E3A8A 0%, #0F2A54 100%);
+      color: #FFFFFF;
+      border-color: #3B82F6;
+      box-shadow: 0 2px 10px rgba(59, 130, 246, 0.25);
+    }
+
+    .admin-sidebar-nav-btn.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 15%;
+      bottom: 15%;
+      width: 4px;
+      background: #F59E0B;
+      border-radius: 0 3px 3px 0;
+    }
+
+    .nav-btn-icon {
+      font-size: 17px;
+      width: 22px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .nav-btn-text {
+      flex: 1;
+    }
+
+    /* Sidebar Footer */
+    .admin-sidebar-footer {
+      padding: 14px 16px;
+      background: #050E1B;
+      border-top: 1.5px solid #1E293B;
+    }
+    .sidebar-helpline-box {
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      border-radius: 6px;
+      padding: 8px 10px;
+      margin-bottom: 10px;
+    }
+    .sidebar-helpline-box small {
+      display: block;
+      font-size: 10px;
+      color: #6EE7B7;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+    .sidebar-helpline-box strong {
+      font-size: 12.5px;
+      color: #10B981;
+      font-family: monospace;
+    }
+
+    /* Hamburger Button (3 lines) */
+    .admin-hamburger-btn {
+      width: 40px;
+      height: 40px;
+      background: #1E293B;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 5px;
+      padding: 0;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .admin-hamburger-btn:hover {
+      background: #2563EB;
+      border-color: #3B82F6;
+    }
+    .admin-hamburger-btn span {
+      display: block;
+      width: 20px;
+      height: 2px;
+      background: #FFFFFF;
+      border-radius: 2px;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .admin-hamburger-btn.active span:nth-child(1) {
+      transform: translateY(7px) rotate(45deg);
+    }
+    .admin-hamburger-btn.active span:nth-child(2) {
+      opacity: 0;
+    }
+    .admin-hamburger-btn.active span:nth-child(3) {
+      transform: translateY(-7px) rotate(-45deg);
+    }
+
+    /* Main Content Wrapper */
+    .admin-main-wrapper {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Navigation Header */
+    .admin-header {
+      background: #071324;
+      border-bottom: 1.5px solid #1E293B;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    }
+    .header-branding {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .header-titles h1 {
+      font-size: 17px;
+      font-weight: 700;
+      color: #FFFFFF;
+      letter-spacing: 0.3px;
+      margin: 0;
+    }
+    .header-titles p {
+      font-size: 11.5px;
+      color: #94A3B8;
+      margin: 2px 0 0 0;
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .btn-portal-link {
+      background: #1E293B;
+      color: #93C5FD;
+      border: 1px solid #334155;
+      padding: 7px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+    .btn-portal-link:hover {
+      background: #2563EB;
+      color: #FFFFFF;
+      border-color: #2563EB;
+    }
+
+    /* Main Container */
+    .admin-main {
+      width: 100%;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px 24px 50px 24px;
+      box-sizing: border-box;
+      flex: 1;
+    }
+
+    /* Tab Panes */
+    .admin-tab-pane {
+      display: none;
+      animation: adminFadeIn 0.2s ease-in-out;
+    }
+    .admin-tab-pane.active {
+      display: block;
+    }
+    @keyframes adminFadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Collapsed Sidebar on Desktop */
+    .admin-sidebar.collapsed {
+      width: 68px;
+      min-width: 68px;
+    }
+    .admin-sidebar.collapsed .sidebar-header-titles,
+    .admin-sidebar.collapsed .nav-category-label,
+    .admin-sidebar.collapsed .nav-btn-text,
+    .admin-sidebar.collapsed .sidebar-helpline-box {
+      display: none !important;
+    }
+    .admin-sidebar.collapsed .admin-sidebar-nav-btn {
+      justify-content: center;
+      padding: 12px 0;
+    }
+    .admin-sidebar.collapsed .nav-btn-icon {
+      font-size: 20px;
+    }
+
+    /* Mobile Sidebar Overlay */
+    .admin-sidebar-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.65);
+      backdrop-filter: blur(3px);
+      z-index: 998;
+    }
+
+    @media (max-width: 900px) {
+      .admin-sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        transform: translateX(-100%);
+        width: 270px;
+        min-width: 270px;
+        z-index: 1000;
+      }
+      .admin-sidebar.mobile-open {
+        transform: translateX(0);
+      }
+      .header-titles p {
+        display: none;
+      }
+    }
+
+    /* Stat Cards Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: #112240;
+      border: 1px solid #1E293B;
+      border-radius: 8px;
+      padding: 18px 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+    }
+    .stat-total::before { background: #3B82F6; }
+    .stat-completed::before { background: #8B5CF6; }
+    .stat-eligible::before { background: #10B981; }
+    .stat-not-eligible::before { background: #EF4444; }
+    .stat-pending::before { background: #64748B; }
+
+    .stat-label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #94A3B8;
+    }
+    .stat-val {
+      font-size: 28px;
+      font-weight: 800;
+      color: #FFFFFF;
+      margin-top: 6px;
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+    .stat-sub {
+      font-size: 12px;
+      color: #64748B;
+      font-weight: 500;
+    }
+
+    /* Credential Formula Helper Accordion */
+    .formula-section {
+      background: #112240;
+      border: 1px solid #1E3A8A;
+      border-radius: 8px;
+      padding: 18px 22px;
+      margin-bottom: 24px;
+    }
+    .formula-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .formula-header h2 {
+      font-size: 15px;
+      color: #60A5FA;
+      font-weight: 700;
+    }
+    .formula-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .formula-box {
+      background: #0A192F;
+      border: 1px solid #1E293B;
+      border-radius: 6px;
+      padding: 12px 16px;
+    }
+    .formula-title {
+      font-size: 11.5px;
+      color: #94A3B8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .formula-code {
+      font-family: monospace;
+      font-size: 14.5px;
+      font-weight: 700;
+      color: #F8FAFC;
+      margin-top: 4px;
+    }
+
+    /* Content Card */
+    .content-card {
+      background: #FFFFFF;
+      color: var(--text-dark);
+      border-radius: 10px;
+      padding: 24px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.25);
+    }
+    .card-top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 18px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .card-title-group h2 {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--primary-navy);
+    }
+    .card-title-group p {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+    .card-btn-group {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .btn-action {
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 12.5px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .btn-refresh {
+      background: #EFF6FF;
+      color: #1D4ED8;
+      border: 1px solid #BFDBFE;
+    }
+    .btn-refresh:hover { background: #DBEAFE; }
+    .btn-export {
+      background: #F0FDF4;
+      color: #15803D;
+      border: 1px solid #BBF7D0;
+    }
+    .btn-export:hover { background: #DCFCE7; }
+    .btn-clear-all {
+      background: #FEF2F2;
+      color: #DC2626;
+      border: 1px solid #FECACA;
+    }
+    .btn-clear-all:hover { background: #FEE2E2; }
+
+    /* Filters and Search Toolbar */
+    .toolbar-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    .search-input-wrapper {
+      position: relative;
+      flex: 1;
+      max-width: 440px;
+    }
+    .search-input-wrapper input {
+      width: 100%;
+      padding: 9px 14px 9px 36px;
+      font-size: 13.5px;
+      border: 1.5px solid #CBD5E1;
+      border-radius: 6px;
+      color: #0F172A;
+      outline: none;
+    }
+    .search-input-wrapper input:focus {
+      border-color: #2563EB;
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+    }
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94A3B8;
+      font-size: 14px;
+    }
+
+    .filter-tabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 6px 12px;
+      border-radius: 5px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid #CBD5E1;
+      background: #F8FAFC;
+      color: #475569;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .tab-btn.active {
+      background: #0B2545;
+      color: #FFFFFF;
+      border-color: #0B2545;
+    }
+    .tab-btn:hover:not(.active) {
+      background: #E2E8F0;
+    }
+
+    /* Master Table */
+    .table-responsive {
+      overflow-x: auto;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+    }
+    .roster-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      text-align: left;
+    }
+    .roster-table th {
+      background: #F8FAFC;
+      color: #475569;
+      font-weight: 700;
+      padding: 11px 14px;
+      border-bottom: 2px solid var(--border-color);
+      white-space: nowrap;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+    }
+    .roster-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #F1F5F9;
+      vertical-align: middle;
+      color: #1E293B;
+    }
+    .roster-table tr:hover {
+      background: #F8FAFC;
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 9px;
+      border-radius: 4px;
+      font-size: 11.5px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+    }
+    .badge-eligible {
+      background: var(--pass-bg);
+      color: var(--pass-green);
+      border: 1px solid #86EFAC;
+    }
+    .badge-not-eligible {
+      background: var(--fail-bg);
+      color: var(--fail-red);
+      border: 1px solid #FCA5A5;
+    }
+    .badge-pending {
+      background: var(--pending-bg);
+      color: var(--pending-gray);
+      border: 1px solid #CBD5E1;
+    }
+    .badge-disqualified {
+      background: #450A0A;
+      color: #F87171;
+      border: 1px solid #7F1D1D;
+    }
+
+    .roll-code {
+      font-family: monospace;
+      font-weight: 700;
+      color: #1E40AF;
+      letter-spacing: 0.5px;
+    }
+    .pwd-code {
+      font-family: monospace;
+      font-weight: 600;
+      color: #64748B;
+      background: #F1F5F9;
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    .btn-reset-single {
+      background: #FEF2F2;
+      color: #DC2626;
+      border: 1px solid #FECACA;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-reset-single:hover {
+      background: #DC2626;
+      color: #FFFFFF;
+    }
+
+    /* Pagination / Table Meta Footer */
+    .table-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 4px 4px 4px;
+      font-size: 12.5px;
+      color: var(--text-muted);
+    }
+
+    /* Portal Schedule & Availability Control Card */
+    .schedule-control-card {
+      background: linear-gradient(145deg, #0d2144, #08162b);
+      border: 1px solid #1E40AF;
+      border-radius: 10px;
+      padding: 22px 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+      position: relative;
+      overflow: hidden;
+    }
+    .schedule-control-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #3B82F6, #10B981, #F59E0B, #EF4444);
+    }
+    .schedule-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 18px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .schedule-title-group h2 {
+      font-size: 17px;
+      font-weight: 800;
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .schedule-title-group p {
+      font-size: 12.5px;
+      color: #94A3B8;
+      margin-top: 3px;
+    }
+    .status-badge-live {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12.5px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+    }
+    .status-badge-live.open {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34D399;
+      border: 1px solid #10B981;
+    }
+    .status-badge-live.closed {
+      background: rgba(239, 68, 68, 0.15);
+      color: #F87171;
+      border: 1px solid #EF4444;
+    }
+    .beacon-pulse {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 10px currentColor;
+      animation: pulse 1.8s infinite;
+    }
+    @keyframes pulse {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.35; transform: scale(0.85); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .schedule-body-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 1.35fr;
+      gap: 22px;
+    }
+    @media (max-width: 900px) {
+      .schedule-body-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .status-info-box {
+      background: rgba(7, 19, 36, 0.65);
+      border: 1px solid #1E293B;
+      border-radius: 8px;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 14px;
+    }
+    .info-metric-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      color: #94A3B8;
+      font-weight: 600;
+    }
+    .info-deadline-display {
+      font-size: 15.5px;
+      font-weight: 800;
+      color: #F8FAFC;
+      margin-top: 4px;
+      font-family: monospace;
+    }
+    .info-countdown-display {
+      font-size: 20px;
+      font-weight: 800;
+      color: #F59E0B;
+      margin-top: 4px;
+    }
+    .info-countdown-display.expired {
+      color: #EF4444;
+    }
+    .quick-toggle-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 6px;
+    }
+    .btn-toggle-open {
+      flex: 1;
+      background: #059669;
+      color: #FFFFFF;
+      border: 1px solid #34D399;
+      padding: 9px 12px;
+      border-radius: 6px;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .btn-toggle-open:hover {
+      background: #10B981;
+      box-shadow: 0 2px 10px rgba(16, 185, 129, 0.35);
+    }
+    .btn-toggle-close {
+      flex: 1;
+      background: #DC2626;
+      color: #FFFFFF;
+      border: 1px solid #F87171;
+      padding: 9px 12px;
+      border-radius: 6px;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .btn-toggle-close:hover {
+      background: #EF4444;
+      box-shadow: 0 2px 10px rgba(239, 68, 68, 0.35);
+    }
+
+    .schedule-editor-box {
+      background: rgba(7, 19, 36, 0.65);
+      border: 1px solid #1E293B;
+      border-radius: 8px;
+      padding: 16px 18px;
+    }
+    .editor-form-group {
+      margin-bottom: 12px;
+    }
+    .editor-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #94A3B8;
+      margin-bottom: 6px;
+      display: block;
+    }
+    .editor-input-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .datetime-picker {
+      flex: 1;
+      background: #0A192F;
+      border: 1.5px solid #334155;
+      color: #FFFFFF;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 13.5px;
+      font-family: inherit;
+      outline: none;
+    }
+    .datetime-picker:focus {
+      border-color: #3B82F6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+    .quick-preset-btns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .preset-btn {
+      background: #1E293B;
+      border: 1px solid #334155;
+      color: #93C5FD;
+      padding: 4px 9px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .preset-btn:hover {
+      background: #2563EB;
+      color: #FFFFFF;
+      border-color: #2563EB;
+    }
+    .notice-textarea {
+      width: 100%;
+      background: #0A192F;
+      border: 1.5px solid #334155;
+      color: #FFFFFF;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: inherit;
+      resize: vertical;
+      outline: none;
+    }
+    .notice-textarea:focus {
+      border-color: #3B82F6;
+    }
+    .btn-save-schedule {
+      background: linear-gradient(135deg, #2563EB, #1D4ED8);
+      color: #FFFFFF;
+      border: 1px solid #60A5FA;
+      padding: 9px 18px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.15s;
+      width: 100%;
+      justify-content: center;
+      margin-top: 6px;
+    }
+    .btn-save-schedule:hover {
+      background: linear-gradient(135deg, #1D4ED8, #1E40AF);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+    }
+    .schedule-alert-banner {
+      display: none;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 12.5px;
+      font-weight: 600;
+      margin-top: 10px;
+      align-items: center;
+      gap: 8px;
+    }
+    .schedule-alert-banner.success {
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid #10B981;
+      color: #6EE7B7;
+    }
+    .schedule-alert-banner.error {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid #EF4444;
+      color: #FCA5A5;
+    }
+
+    /* Live Sync Indicator */
+    .live-sync-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.45);
+      color: #34D399;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 5px 11px;
+      border-radius: 20px;
+      letter-spacing: 0.4px;
+    }
+    .live-pulse {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10B981;
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+      animation: pulse-green 1.8s infinite;
+    }
+    @keyframes pulse-green {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    /* Live Candidate Status Badges */
+    .badge-in-progress {
+      background: #EFF6FF;
+      color: #1D4ED8;
+      border: 1px solid #93C5FD;
+      font-weight: 800;
+      animation: flash-border 2s infinite ease-in-out;
+    }
+    @keyframes flash-border {
+      0%, 100% { border-color: #93C5FD; }
+      50% { border-color: #2563EB; background: #DBEAFE; }
+    }
+    .badge-early {
+      background: #F0FDF4;
+      color: #15803D;
+      border: 1px solid #86EFAC;
+    }
+    .badge-timer {
+      background: #FEF3C7;
+      color: #B45309;
+      border: 1px solid #FCD34D;
+    }
+    .badge-completed {
+      background: #F1F5F9;
+      color: #0F172A;
+      border: 1px solid #CBD5E1;
+    }
+    .badge-strike-zero {
+      background: #F0FDF4;
+      color: #166534;
+      border: 1px solid #BBF7D0;
+    }
+    .badge-strike-warn {
+      background: #FFFBEB;
+      color: #B45309;
+      border: 1px solid #FDE68A;
+    }
+    .badge-strike-danger {
+      background: #FEF2F2;
+      color: #B91C1C;
+      border: 1px solid #FECACA;
+    }
+    .live-dot-inline {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #2563EB;
+      display: inline-block;
+      animation: blink 1s infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.25; }
+    }
+
+    /* Action buttons in Table */
+    .strike-cell-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      align-items: flex-start;
+    }
+    .btn-xs {
+      font-size: 10.5px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+    .btn-reasons {
+      background: #FEF3C7;
+      color: #92400E;
+      border: 1px solid #FCD34D;
+    }
+    .btn-reasons:hover {
+      background: #FDE68A;
+      color: #78350F;
+    }
+    .action-btn-group {
+      display: flex;
+      gap: 6px;
+      justify-content: flex-end;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .btn-action-sm {
+      padding: 5px 9px;
+      font-size: 11.5px;
+      font-weight: 600;
+      border-radius: 5px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+    .btn-view-result {
+      background: #EFF6FF;
+      color: #1D4ED8;
+      border-color: #BFDBFE;
+    }
+    .btn-view-result:hover {
+      background: #1D4ED8;
+      color: #FFFFFF;
+    }
+    .btn-live-monitor {
+      background: #FEF3C7;
+      color: #B45309;
+      border-color: #FDE68A;
+    }
+    .btn-live-monitor:hover {
+      background: #F59E0B;
+      color: #FFFFFF;
+    }
+    .btn-edit {
+      background: #FEF3C7;
+      color: #92400E;
+      border-color: #FCD34D;
+    }
+    .btn-edit:hover {
+      background: #F59E0B;
+      color: #FFFFFF;
+    }
+    .btn-media {
+      background: #EEF2FF;
+      color: #4338CA;
+      border-color: #C7D2FE;
+    }
+    .btn-media:hover {
+      background: #4F46E5;
+      color: #FFFFFF;
+    }
+    .btn-wa {
+      background: #ECFDF5;
+      color: #047857;
+      border-color: #A7F3D0;
+    }
+    .btn-wa:hover {
+      background: #10B981;
+      color: #FFFFFF;
+    }
+
+    /* Modals */
+    .admin-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(7, 19, 36, 0.85);
+      backdrop-filter: blur(5px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    .admin-modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .admin-modal-box {
+      background: #FFFFFF;
+      color: #0F172A;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 860px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    .admin-modal-header {
+      padding: 16px 24px;
+      border-bottom: 1px solid #E2E8F0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #071324;
+      color: #FFFFFF;
+      border-radius: 12px 12px 0 0;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .admin-modal-header h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #FFFFFF;
+    }
+    .admin-modal-close {
+      background: rgba(255,255,255,0.12);
+      border: none;
+      color: #FFFFFF;
+      font-size: 20px;
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .admin-modal-close:hover {
+      background: rgba(255,255,255,0.25);
+    }
+    .admin-modal-body {
+      padding: 24px;
+      overflow-y: auto;
+    }
+
+    /* Scorecard Certificate */
+    .scorecard-certificate {
+      background: #FFFFFF;
+      border: 3px double #0A192F;
+      border-radius: 10px;
+      padding: 28px;
+      position: relative;
+    }
+    .cert-header {
+      text-align: center;
+      border-bottom: 2px solid #0A192F;
+      padding-bottom: 16px;
+      margin-bottom: 20px;
+    }
+    .cert-logo-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #0A192F;
+      color: #F59E0B;
+      font-size: 24px;
+      margin-bottom: 8px;
+      border: 2px solid #D97706;
+    }
+    .cert-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: #0A192F;
+      letter-spacing: 0.5px;
+    }
+    .cert-subtitle {
+      font-size: 12px;
+      color: #64748B;
+      margin-top: 3px;
+    }
+    .cert-candidate-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .cert-field-label {
+      font-size: 10.5px;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: #64748B;
+      letter-spacing: 0.5px;
+    }
+    .cert-field-val {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0A192F;
+      margin-top: 3px;
+    }
+    .cert-scores-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .cert-score-box {
+      border: 1px solid #CBD5E1;
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+      background: #FFFFFF;
+    }
+    .cert-score-num {
+      font-size: 22px;
+      font-weight: 800;
+      color: #0A192F;
+      margin-top: 4px;
+    }
+    .cert-stamp-badge {
+      display: inline-block;
+      padding: 8px 20px;
+      font-size: 16px;
+      font-weight: 800;
+      border-radius: 6px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .cert-stamp-badge.eligible {
+      background: #DCFCE7;
+      color: #15803D;
+      border: 2px solid #16A34A;
+    }
+    .cert-stamp-badge.not-eligible {
+      background: #FEE2E2;
+      color: #B91C1C;
+      border: 2px solid #DC2626;
+    }
+    .cert-stamp-badge.disqualified {
+      background: #450A0A;
+      color: #F87171;
+      border: 2px solid #991B1B;
+    }
+    .cert-solutions-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-top: 14px;
+    }
+    .cert-solutions-table th {
+      background: #F1F5F9;
+      color: #475569;
+      padding: 8px 10px;
+      border: 1px solid #CBD5E1;
+      text-align: left;
+      font-size: 11px;
+    }
+    .cert-solutions-table td {
+      padding: 8px 10px;
+      border: 1px solid #E2E8F0;
+      color: #1E293B;
+    }
+
+    /* ============================================== */
+    /* ADMIN AUTHENTICATION SECURITY GATE POPUP MODAL */
+    /* ============================================== */
+    .admin-auth-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: radial-gradient(circle at center, rgba(15, 23, 42, 0.96) 0%, rgba(7, 19, 36, 0.99) 100%);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      z-index: 9999999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    .admin-auth-modal {
+      background: linear-gradient(165deg, #112240 0%, #0A192F 100%);
+      border: 2px solid #3B82F6;
+      border-radius: 16px;
+      padding: 36px 32px;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.65), 0 0 30px rgba(59, 130, 246, 0.25);
+      text-align: center;
+      animation: modalPopIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+    }
+    @keyframes modalPopIn {
+      from { opacity: 0; transform: scale(0.92) translateY(12px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .admin-auth-shield {
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 18px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #1E3A8A, #0F172A);
+      border: 3px solid #F59E0B;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 25px rgba(245, 158, 11, 0.4);
+      animation: shieldGlow 2.5s infinite alternate ease-in-out;
+    }
+    @keyframes shieldGlow {
+      from { box-shadow: 0 0 15px rgba(245, 158, 11, 0.3); border-color: #F59E0B; }
+      to { box-shadow: 0 0 30px rgba(245, 158, 11, 0.6); border-color: #FBBF24; }
+    }
+    .admin-auth-title {
+      font-size: 21px;
+      font-weight: 800;
+      color: #FFFFFF;
+      margin-bottom: 6px;
+      letter-spacing: 0.3px;
+    }
+    .admin-auth-subtitle {
+      font-size: 12.5px;
+      color: #94A3B8;
+      font-weight: 600;
+      margin-bottom: 16px;
+      letter-spacing: 0.5px;
+    }
+    .admin-auth-info {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid #1E293B;
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 12px;
+      color: #CBD5E1;
+      line-height: 1.5;
+      margin-bottom: 22px;
+      text-align: left;
+    }
+    .admin-auth-input-group {
+      margin-bottom: 18px;
+      text-align: left;
+    }
+    .admin-auth-input-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: #F1F5F9;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .admin-pwd-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .admin-pwd-wrapper input {
+      width: 100%;
+      background: #071324;
+      border: 1.5px solid #334155;
+      border-radius: 8px;
+      padding: 13px 46px 13px 14px;
+      font-size: 15px;
+      color: #FFFFFF;
+      font-family: inherit;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .admin-pwd-wrapper input:focus {
+      border-color: #3B82F6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35);
+      background: #0B192C;
+    }
+    .btn-pwd-eye {
+      position: absolute;
+      right: 12px;
+      background: transparent;
+      border: none;
+      color: #94A3B8;
+      cursor: pointer;
+      font-size: 17px;
+      padding: 4px 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.15s;
+    }
+    .btn-pwd-eye:hover {
+      color: #FFFFFF;
+    }
+    .btn-admin-unlock {
+      width: 100%;
+      background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+      color: #FFFFFF;
+      border: 1px solid #3B82F6;
+      border-radius: 8px;
+      padding: 13px 20px;
+      font-size: 14.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 15px rgba(37, 99, 235, 0.35);
+      transition: all 0.2s;
+    }
+    .btn-admin-unlock:hover {
+      background: linear-gradient(135deg, #1D4ED8 0%, #1E40AF 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
+    }
+    .admin-auth-error {
+      background: rgba(220, 38, 38, 0.15);
+      border: 1px solid #EF4444;
+      border-radius: 6px;
+      padding: 10px 14px;
+      color: #FCA5A5;
+      font-size: 12.5px;
+      margin-bottom: 16px;
+      text-align: left;
+      animation: shake 0.4s ease-in-out;
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+    .admin-auth-footer {
+      margin-top: 20px;
+      padding-top: 14px;
+      border-top: 1px solid #1E293B;
+      font-size: 12px;
+    }
+    .admin-auth-back-link {
+      color: #94A3B8;
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .admin-auth-back-link:hover {
+      color: #38BDF8;
+      text-decoration: underline;
+    }
+
+    /* Print Stylesheet */
+    @media print {
+      body {
+        background: #FFFFFF !important;
+        color: #000000 !important;
+        padding: 0 !important;
+      }
+      body * {
+        visibility: hidden !important;
+      }
+      #scorecardModal, #scorecardModal.active {
+        position: static !important;
+        background: transparent !important;
+        padding: 0 !important;
+      }
+      #scorecardPrintArea, #scorecardPrintArea * {
+        visibility: visible !important;
+      }
+      #scorecardPrintArea {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 10px !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============================================== -->
+  <!-- ADMIN AUTHENTICATION SECURITY GATE POPUP MODAL -->
+  <!-- ============================================== -->
+  <div id="adminAuthOverlay" class="admin-auth-overlay">
+    <div class="admin-auth-modal">
+      <div class="admin-auth-shield">
+        <svg viewBox="0 0 24 24" width="38" height="38" fill="none" stroke="#F59E0B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          <circle cx="12" cy="16" r="1.5" fill="#F59E0B"></circle>
+        </svg>
+      </div>
+      <h2 class="admin-auth-title">Administrative Portal Security Lock</h2>
+      <p class="admin-auth-subtitle">Educare Academy &bull; CBSE Class 10th Science Examination Console</p>
+      <div class="admin-auth-info">
+        &#128274; <strong>Confidential Access:</strong> This administrative console contains candidate assessment rosters, proctoring surveillance audit logs, and examination schedule controls. Enter the Master Administrator Key to unlock the control desk.
+      </div>
+      <form id="adminAuthForm" onsubmit="handleAdminLogin(event)">
+        <div id="adminAuthError" class="admin-auth-error" style="display: none;"></div>
+        <div class="admin-auth-input-group">
+          <label for="adminAuthPassword">&#128273; Master Administrator Key</label>
+          <div class="admin-pwd-wrapper">
+            <input type="password" id="adminAuthPassword" placeholder="Enter confidential key..." autocomplete="current-password" required>
+            <button type="button" id="btnToggleAdminPwd" class="btn-pwd-eye" title="Toggle visibility">&#128065;</button>
+          </div>
+        </div>
+        <button type="submit" id="btnAdminUnlock" class="btn-admin-unlock">
+          &#128275; Unlock Administrative Portal
+        </button>
+      </form>
+      <div class="admin-auth-footer">
+        <a href="/" class="admin-auth-back-link">&larr; Return to Student Examination Portal</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- WRAP ENTIRE ADMIN DASHBOARD IN #adminPortalWrapper (HIDDEN UNTIL AUTHENTICATED) -->
+  <div id="adminPortalWrapper" style="display: none;">
+
+  <!-- Mobile Backdrop Overlay -->
+  <div class="admin-sidebar-overlay" id="adminSidebarOverlay" onclick="closeMobileSidebar()"></div>
+
+  <div class="admin-layout-wrapper">
+
+    <!-- ============================================== -->
+    <!-- LEFT SIDEBAR WITH ORGANIZED TABS & NAVIGATION -->
+    <!-- ============================================== -->
+    <aside class="admin-sidebar" id="adminSidebar">
+      <div class="admin-sidebar-header">
+        <div class="sidebar-crest">&#127891;</div>
+        <div class="sidebar-header-titles">
+          <span class="brand-name">EDUCARE ACADEMY</span>
+          <span class="brand-desc">CBSE 10th Science Console</span>
+        </div>
+      </div>
+
+      <nav class="admin-sidebar-nav">
+        <div class="nav-category-label">Admin Management Tabs</div>
+
+        <button type="button" class="admin-sidebar-nav-btn active" data-tab="tab-dashboard" onclick="switchAdminTab('tab-dashboard')">
+          <span class="nav-btn-icon">&#128202;</span>
+          <span class="nav-btn-text">Dashboard (डैशबोर्ड)</span>
+        </button>
+
+        <button type="button" class="admin-sidebar-nav-btn" data-tab="tab-students" onclick="switchAdminTab('tab-students')">
+          <span class="nav-btn-icon">&#128101;</span>
+          <span class="nav-btn-text">Student Details (छात्र विवरण)</span>
+        </button>
+
+        <button type="button" class="admin-sidebar-nav-btn" data-tab="tab-questions" onclick="switchAdminTab('tab-questions')">
+          <span class="nav-btn-icon">&#128221;</span>
+          <span class="nav-btn-text">Questions &amp; WhatsApp (प्रश्न व प्रेषण)</span>
+        </button>
+
+        <button type="button" class="admin-sidebar-nav-btn" data-tab="tab-proctoring" onclick="switchAdminTab('tab-proctoring')">
+          <span class="nav-btn-icon">&#128737;&#65039;</span>
+          <span class="nav-btn-text">Proctoring &amp; Security (निगरानी)</span>
+        </button>
+
+        <button type="button" class="admin-sidebar-nav-btn" data-tab="tab-schedule" onclick="switchAdminTab('tab-schedule')">
+          <span class="nav-btn-icon">&#9200;</span>
+          <span class="nav-btn-text">Portal Schedule (समय नियंत्रण)</span>
+        </button>
+      </nav>
+
+      <div class="admin-sidebar-footer">
+        <div class="sidebar-helpline-box">
+          <small>Faculty WhatsApp Desk</small>
+          <strong>+91 8448467381</strong>
+        </div>
+        <button type="button" onclick="handleAdminLogout()" style="width: 100%; background: #7F1D1D; color: #FCA5A5; border: 1px solid #991B1B; padding: 8px 10px; border-radius: 6px; font-size: 11.5px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+          <span>&#128274;</span> Lock Admin Console
+        </button>
+      </div>
+    </aside>
+
+    <!-- ============================================== -->
+    <!-- MAIN CONTENT AREA WITH HEADER & TAB PANES     -->
+    <!-- ============================================== -->
+    <div class="admin-main-wrapper">
+      
+      <!-- Top Header with Hamburger and Live Status -->
+      <header class="admin-header">
+        <div class="header-branding">
+          <!-- Hamburger 3-Line Button -->
+          <button type="button" class="admin-hamburger-btn" id="adminHamburgerBtn" onclick="toggleAdminSidebar()" aria-label="Toggle Navigation Menu" title="Toggle Sidebar">
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+          <div class="header-titles">
+            <h1 id="adminHeaderTabTitle">Educare Academy &bull; Executive Dashboard</h1>
+            <p id="adminHeaderTabSubtitle">Live candidate KPIs, current active chapter, and quick portal status overview</p>
+          </div>
+        </div>
+        <div class="header-actions">
+          <div class="live-sync-indicator" title="Admin table automatically syncs live candidate progress and tab-switches in real-time">
+            <span class="live-pulse"></span>
+            <span id="syncStatus">LIVE REALTIME SYNC (3s)</span>
+          </div>
+          <span style="font-size: 12px; color: #10B981; font-weight: 600;">&#9679; Admin Authenticated</span>
+          <button id="btnAdminLogout" class="btn-portal-link" style="background:#7F1D1D; border-color:#991B1B; color:#FCA5A5; cursor:pointer;" title="Lock console and require password to re-enter">&#128274; Lock</button>
+          <a href="/" target="_blank" class="btn-portal-link">&#8599; Open Student Exam Portal</a>
+        </div>
+      </header>
+
+      <main class="admin-main">
+
+        <!-- ============================================== -->
+        <!-- TAB 1: EXECUTIVE DASHBOARD (डैशबोर्ड)           -->
+        <!-- ============================================== -->
+        <div id="tab-dashboard" class="admin-tab-pane active">
+          
+          <!-- Welcome & Shortcut Banner -->
+          <div style="background: linear-gradient(135deg, #1E3A8A 0%, #0F172A 100%); border: 1.5px solid #2563EB; border-radius: 10px; padding: 20px 24px; margin-bottom: 22px; color: #FFFFFF; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+            <div>
+              <h2 style="font-size: 20px; font-weight: 800; margin: 0 0 6px 0;">Welcome, Administrator</h2>
+              <p style="font-size: 13px; color: #93C5FD; margin: 0;">CBSE Class 10th Board Science Assessment Management System &bull; 500 Enrolled Candidates</p>
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <button type="button" class="btn-action" onclick="switchAdminTab('tab-students')" style="background: #10B981; color: white; border: none; font-weight: 700; padding: 9px 16px; border-radius: 6px; cursor: pointer;">
+                &#128101; View 500 Student Roster
+              </button>
+              <button type="button" class="btn-action" onclick="switchAdminTab('tab-questions')" style="background: #0284C7; color: white; border: none; font-weight: 700; padding: 9px 16px; border-radius: 6px; cursor: pointer;">
+                &#128221; Daily Questions &amp; WhatsApp
+              </button>
+              <button type="button" class="btn-action" onclick="switchAdminTab('tab-schedule')" style="background: #D97706; color: white; border: none; font-weight: 700; padding: 9px 16px; border-radius: 6px; cursor: pointer;">
+                &#9200; Portal Schedule
+              </button>
+            </div>
+          </div>
+
+          <!-- KPI Summary Cards (Live Status) -->
+          <section class="stats-grid">
+            <div class="stat-card stat-total">
+              <div class="stat-label">Total Enrolled Candidates</div>
+              <div class="stat-val" id="statTotal">500 <span class="stat-sub">Students</span></div>
+            </div>
+            <div class="stat-card" style="border-left: 4px solid #0284C7;">
+              <div class="stat-label">Live In-Progress</div>
+              <div class="stat-val" id="statInProgress" style="color: #38BDF8;">0 <span class="stat-sub">Active Now</span></div>
+            </div>
+            <div class="stat-card stat-completed">
+              <div class="stat-label">Exams Completed</div>
+              <div class="stat-val" id="statCompleted">0 <span class="stat-sub">Submitted</span></div>
+            </div>
+            <div class="stat-card stat-eligible">
+              <div class="stat-label">Eligible / Qualified</div>
+              <div class="stat-val" id="statEligible" style="color: #10B981;">0 <span class="stat-sub">(&ge; 50% Marks)</span></div>
+            </div>
+            <div class="stat-card stat-not-eligible">
+              <div class="stat-label">Not Eligible / Failed</div>
+              <div class="stat-val" id="statNotEligible" style="color: #EF4444;">0 <span class="stat-sub">(&lt; 50% Marks)</span></div>
+            </div>
+            <div class="stat-card stat-pending">
+              <div class="stat-label">Pending Attempts</div>
+              <div class="stat-val" id="statPending" style="color: #94A3B8;">500 <span class="stat-sub">Remaining</span></div>
+            </div>
+          </section>
+
+          <!-- Systematic Credential Rule & Examination Policy Box -->
+          <section class="formula-section">
+            <div class="formula-header">
+              <h2>&#128208; Educare Academy &bull; Student Credential Architecture &amp; Examination Policy</h2>
+              <span style="font-size: 12px; color: #94A3B8;">500 Enrolled Students &bull; 100% Non-Guessable &bull; Locked Credentials</span>
+            </div>
+            <div class="formula-grid">
+              <div class="formula-box">
+                <div class="formula-title">Roll Number Architecture</div>
+                <div class="formula-code">26CBSEBRD---</div>
+                <small style="color: #64748B; font-size: 11px;">Prefix 26CBSEBRD + 3 Unpredictable Alphanumeric Characters (e.g. 26CBSEBRDD2A). Fixed &amp; Locked.</small>
+              </div>
+              <div class="formula-box">
+                <div class="formula-title">Universal Secure Password</div>
+                <div class="formula-code" style="color: #F59E0B;">Edu@26</div>
+                <small style="color: #64748B; font-size: 11px;">Standardized secure credential for all 500 enrolled CBSE students.</small>
+              </div>
+              <div class="formula-box">
+                <div class="formula-title">Daily Question Policy (5 Repeat + 20 Fresh)</div>
+                <div class="formula-code" style="color: #10B981;">25 Questions / 25 Marks</div>
+                <small style="color: #64748B; font-size: 11px;">Weekly Chapter Wise (50 pool). Day-to-day: 5 repeat from yesterday + 20 fresh from pool.</small>
+              </div>
+            </div>
+          </section>
+
+          <!-- Quick Navigation Cards to other tabs -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 18px;">
+            <div style="background: #112240; border: 1px solid #1E293B; border-radius: 8px; padding: 18px; cursor: pointer; transition: all 0.2s;" onclick="switchAdminTab('tab-students')" onmouseover="this.style.borderColor='#3B82F6'" onmouseout="this.style.borderColor='#1E293B'">
+              <div style="font-size: 24px; margin-bottom: 8px;">&#128101;</div>
+              <h3 style="font-size: 15px; font-weight: 700; color: #FFFFFF; margin: 0 0 6px 0;">Student Roster &amp; Details</h3>
+              <p style="font-size: 12px; color: #94A3B8; margin: 0 0 10px 0;">Manage 500 candidate credentials, WhatsApp dispatch, photo/video media &amp; scorecards.</p>
+              <span style="color: #38BDF8; font-size: 12px; font-weight: 700;">Open Students &rarr;</span>
+            </div>
+
+            <div style="background: #112240; border: 1px solid #1E293B; border-radius: 8px; padding: 18px; cursor: pointer; transition: all 0.2s;" onclick="switchAdminTab('tab-questions')" onmouseover="this.style.borderColor='#10B981'" onmouseout="this.style.borderColor='#1E293B'">
+              <div style="font-size: 24px; margin-bottom: 8px;">&#128221;</div>
+              <h3 style="font-size: 15px; font-weight: 700; color: #FFFFFF; margin: 0 0 6px 0;">NCERT Scraper &amp; WhatsApp</h3>
+              <p style="font-size: 12px; color: #94A3B8; margin: 0 0 10px 0;">Scrape fresh 50-question pool from internet &amp; send daily 25 questions to +91 8448467381.</p>
+              <span style="color: #34D399; font-size: 12px; font-weight: 700;">Open Questions &rarr;</span>
+            </div>
+
+            <div style="background: #112240; border: 1px solid #1E293B; border-radius: 8px; padding: 18px; cursor: pointer; transition: all 0.2s;" onclick="switchAdminTab('tab-schedule')" onmouseover="this.style.borderColor='#F59E0B'" onmouseout="this.style.borderColor='#1E293B'">
+              <div style="font-size: 24px; margin-bottom: 8px;">&#9200;</div>
+              <h3 style="font-size: 15px; font-weight: 700; color: #FFFFFF; margin: 0 0 6px 0;">Portal Schedule &amp; Deadline</h3>
+              <p style="font-size: 12px; color: #94A3B8; margin: 0 0 10px 0;">Configure exam window, set deadline date &amp; time, or instantly close/reopen portal.</p>
+              <span style="color: #FBBF24; font-size: 12px; font-weight: 700;">Open Schedule &rarr;</span>
+            </div>
+          </div>
+
+        </div> <!-- /tab-dashboard -->
+
+        <!-- ============================================== -->
+        <!-- TAB 2: STUDENT DETAILS (छात्र विवरण)          -->
+        <!-- ============================================== -->
+        <div id="tab-students" class="admin-tab-pane">
+          <!-- Master Roster & Eligibility Table Card -->
+          <div class="content-card">
+            <div class="card-top-bar">
+              <div class="card-title-group">
+                <h2>Candidate Master Assessment Ledger &amp; Eligibility Status</h2>
+                <p>Real-time proctored assessment data, live tab-switch surveillance, and downloadable result scorecards</p>
+              </div>
+              <div class="card-btn-group">
+                <button type="button" class="btn-action" onclick="openAddStudentModal()" style="background: #10B981; color: white; border: none; font-weight: 700;">
+                  &#10133; Add Student (छात्र जोड़ें)
+                </button>
+                <button type="button" class="btn-action btn-refresh" id="btnRefresh">
+                  &#8635; Refresh Data
+                </button>
+                <button type="button" class="btn-action btn-export" id="btnExportCSV">
+                  &#8681; Export to CSV
+                </button>
+                <button type="button" class="btn-action btn-clear-all" id="btnClearAll">
+                  &#128465; Reset All Attempts
+                </button>
+              </div>
+            </div>
+
+            <!-- Toolbar: Live Search & Filter Tabs -->
+            <div class="toolbar-row">
+              <div class="search-input-wrapper">
+                <span class="search-icon">&#128269;</span>
+                <input type="text" id="searchInput" placeholder="Search by Candidate Name, Roll Number (e.g. 50007), or Serial #...">
+              </div>
+              <div class="filter-tabs">
+                <button type="button" class="tab-btn active" data-filter="all">All Candidates (<span id="countAll">500</span>)</button>
+                <button type="button" class="tab-btn" data-filter="in_progress" style="color: #0284C7;">Live Active (<span id="countInProgress">0</span>)</button>
+                <button type="button" class="tab-btn" data-filter="eligible" style="color: #15803D;">Eligible / Qualified (<span id="countEligible">0</span>)</button>
+                <button type="button" class="tab-btn" data-filter="not_eligible" style="color: #B91C1C;">Not Eligible (<span id="countNotEligible">0</span>)</button>
+                <button type="button" class="tab-btn" data-filter="completed">Completed (<span id="countCompleted">0</span>)</button>
+                <button type="button" class="tab-btn" data-filter="pending">Pending (<span id="countPending">500</span>)</button>
+              </div>
+            </div>
+
+            <!-- Table View -->
+            <div class="table-responsive">
+              <table class="roster-table">
+                <thead>
+                  <tr>
+                    <th style="width: 45px;">#</th>
+                    <th>Roll Number</th>
+                    <th>Candidate Name</th>
+                    <th>Password</th>
+                    <th>Exam Status</th>
+                    <th>Score (25)</th>
+                    <th>Tab Switches / Strikes</th>
+                    <th>Eligibility Decision</th>
+                    <th>Submission / Activity Time</th>
+                    <th style="text-align: right;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="rosterTableBody">
+                  <tr>
+                    <td colspan="10" style="text-align: center; padding: 30px; color: #64748B;">
+                      Loading candidate assessment records...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="table-footer">
+              <div>Showing <strong id="visibleCount">0</strong> of <strong id="totalCount">500</strong> candidates</div>
+              <div style="font-size: 12px; color: #64748B;">
+                * Single-attempt lock enforces one test per Roll Number. Admin can reset individual attempts using the Reset button.
+              </div>
+            </div>
+          </div> <!-- /content-card -->
+        </div> <!-- /tab-students -->
+
+        <!-- ============================================== -->
+        <!-- TAB 3: QUESTIONS & WHATSAPP (प्रश्न व प्रेषण) -->
+        <!-- ============================================== -->
+        <div id="tab-questions" class="admin-tab-pane">
+          <!-- LIVE NCERT QUESTION SCRAPER & WHATSAPP TEACHER HELPLINE CARD -->
+          <section class="schedule-control-card" style="border-left: 4px solid #10B981;">
+            <div class="schedule-header">
+              <div class="schedule-title-group">
+                <h2>
+                  <span>&#127760;</span> Live Internet NCERT Scraper &amp; Daily WhatsApp Question Dispatch
+                </h2>
+                <p>Scrape fresh NCERT Class 10 Science questions directly from the internet &bull; Daily 25 questions formatted for WhatsApp (+91 8448467381)</p>
+              </div>
+              <div class="status-badge-live open" style="background: #ECFDF5; color: #047857; border: 1px solid #A7F3D0;">
+                <span>&#128225; NCERT LIVE ENGINE</span>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 14px;">
+              <!-- Scrape Box -->
+              <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 16px;">
+                <h4 style="font-size: 14px; font-weight: 700; color: #0F172A; margin-bottom: 8px;">
+                  &#127760; Scrape 50 Questions from Internet
+                </h4>
+                <p style="font-size: 12px; color: #64748B; margin-bottom: 12px;">
+                  Pulls authentic Class 10 Science questions for the selected NCERT chapter and updates the 50-question pool.
+                </p>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                  <select id="selectChapterForScrape" style="flex: 1; min-width: 180px; padding: 8px 10px; border-radius: 6px; border: 1px solid #CBD5E1; font-size: 13px;">
+                    <option value="1">Ch 1: Chemical Reactions &amp; Equations</option>
+                    <option value="2">Ch 2: Acids, Bases and Salts</option>
+                    <option value="3">Ch 3: Metals and Non-metals</option>
+                    <option value="4">Ch 4: Carbon and its Compounds</option>
+                    <option value="5">Ch 5: Life Processes</option>
+                    <option value="6">Ch 6: Control and Coordination</option>
+                    <option value="7">Ch 7: How do Organisms Reproduce?</option>
+                    <option value="8">Ch 8: Heredity</option>
+                    <option value="9">Ch 9: Light - Reflection &amp; Refraction</option>
+                    <option value="10">Ch 10: The Human Eye</option>
+                    <option value="11">Ch 11: Electricity</option>
+                    <option value="12">Ch 12: Magnetic Effects</option>
+                    <option value="13">Ch 13: Our Environment</option>
+                  </select>
+                  <button type="button" class="btn-action" id="btnScrapeQuestions" onclick="handleScrapeQuestions()" style="background: #0284C7; color: white; border: none; font-weight: 700;">
+                    &#127760; Scrape 50 Pool
+                  </button>
+                </div>
+                <div id="scrapeStatusText" style="font-size: 11.5px; color: #059669; margin-top: 8px; font-weight: 600;"></div>
+              </div>
+
+              <!-- WhatsApp Box -->
+              <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 16px;">
+                <h4 style="font-size: 14px; font-weight: 700; color: #0F172A; margin-bottom: 8px;">
+                  &#128241; Today's 25 Questions on WhatsApp (+91 8448467381)
+                </h4>
+                <p style="font-size: 12px; color: #64748B; margin-bottom: 12px;">
+                  Directly format today's 25 questions (5 repeating + 20 fresh) with answers &amp; explanations for Sir's WhatsApp.
+                </p>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                  <button type="button" class="btn-action" onclick="shareDailyQuestionsWhatsApp()" style="background: #25D366; color: white; border: none; font-weight: 700;">
+                    &#128172; Send on WhatsApp (8448467381)
+                  </button>
+                  <a href="/question-paper" target="_blank" class="btn-action" style="background: #2563EB; color: white; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; border-radius: 6px; padding: 8px 14px;">
+                    &#128424; View &amp; Print PDF Paper
+                  </a>
+                  <a href="/api/admin/download-questions-pdf" class="btn-action" style="background: #DC2626; color: white; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; border-radius: 6px; padding: 8px 14px;">
+                    &#128196; Download .PDF File
+                  </a>
+                  <button type="button" class="btn-action" onclick="downloadTodayQuestionsText()" style="background: #0B2545; color: white; border: none; font-weight: 700;">
+                    &#128196; Download .txt
+                  </button>
+                </div>
+                <div style="font-size: 11.5px; color: #475569; margin-top: 10px;">
+                  &#10004; Target Examiner Number: <strong>+91 8448467381</strong> &bull; Official CBSE Class 10 Design
+                </div>
+              </div>
+
+              <!-- Chapter Rotation Policy Box -->
+              <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 16px;">
+                <h4 style="font-size: 14px; font-weight: 700; color: #0F172A; margin-bottom: 8px;">
+                  &#128203; Examination Rotation Formula
+                </h4>
+                <p style="font-size: 12px; color: #64748B; margin-bottom: 8px;">
+                  <strong>Weekly Chapter Rotation:</strong> A chapter runs for 7 continuous days with 50 master questions in the pool.
+                </p>
+                <p style="font-size: 12px; color: #64748B; margin-bottom: 0;">
+                  <strong>Daily Algorithm:</strong> Exactly 25 questions served per test (5 repeating from yesterday + 20 fresh from pool).
+                </p>
+              </div>
+            </div>
+          </section>
+        </div> <!-- /tab-questions -->
+
+        <!-- ============================================== -->
+        <!-- TAB 4: PROCTORING & SECURITY (निगरानी)        -->
+        <!-- ============================================== -->
+        <div id="tab-proctoring" class="admin-tab-pane">
+          <!-- PROCTOR SURVEILLANCE & SECURITY AUDIT CARD -->
+          <section class="schedule-control-card" style="border-left: 4px solid #3B82F6;">
+            <div class="schedule-header">
+              <div class="schedule-title-group">
+                <h2>
+                  <span>&#128737;&#65039;</span> Proctor Surveillance &amp; Anti-Cheat Security Audit
+                </h2>
+                <p>Live candidate window tab-switch monitoring, background media capture, and storage retention rules</p>
+              </div>
+              <div class="status-badge-live open" style="background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE;">
+                <span>&#128065; PROCTORING ACTIVE</span>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 14px;">
+              <!-- Clean Media Box -->
+              <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 16px;">
+                <h4 style="font-size: 14px; font-weight: 700; color: #0F172A; margin-bottom: 8px;">
+                  &#129529; Daily 1:00 AM Automated Storage Purge
+                </h4>
+                <p style="font-size: 12px; color: #64748B; margin-bottom: 12px;">
+                  Exam videos and snapshots auto-purge daily at <strong>1:00 AM IST</strong> so server disk never overflows. Manual cleanup also available:
+                </p>
+                <button type="button" class="btn-action" onclick="handleManualProctorPurge()" style="background: #DC2626; color: white; border: none; font-weight: 700;">
+                  &#128465; Purge Media Now (Clean Storage)
+                </button>
+                <div id="purgeStatusText" style="font-size: 11.5px; color: #059669; margin-top: 8px; font-weight: 600;"></div>
+              </div>
+
+              <!-- Tab Switch Anti-Cheat Box -->
+              <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 16px;">
+                <h4 style="font-size: 14px; font-weight: 700; color: #0F172A; margin-bottom: 8px;">
+                  &#128274; 3-Strike Tab-Switch Anti-Cheat Policy
+                </h4>
+                <p style="font-size: 12px; color: #64748B; margin-bottom: 12px;">
+                  If a candidate switches tabs, minimizes window, or opens another application 3 times during the live exam, their test attempt is immediately <strong>cancelled and locked</strong>.
+                </p>
+                <div style="font-size: 11.5px; color: #B91C1C; font-weight: 700; background: #FEE2E2; padding: 6px 10px; border-radius: 5px;">
+                  &#9888; Only the administrator can reset a cancelled attempt from the Student Details tab.
+                </div>
+              </div>
+
+              <!-- Media Privacy Box -->
+              <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 16px;">
+                <h4 style="font-size: 14px; font-weight: 700; color: #0F172A; margin-bottom: 8px;">
+                  &#128249; Background Recording &amp; Compressed Media
+                </h4>
+                <p style="font-size: 12px; color: #64748B; margin-bottom: 12px;">
+                  Candidate camera operates seamlessly in the background without obstructing test questions. Video is compressed to 100 kbps WebM for ultra-efficient review.
+                </p>
+                <button type="button" class="btn-action" onclick="switchAdminTab('tab-students')" style="background: #1E293B; color: white; border: none; font-weight: 600;">
+                  &#128101; Inspect Student Media in Table &rarr;
+                </button>
+              </div>
+            </div>
+          </section>
+        </div> <!-- /tab-proctoring -->
+
+        <!-- ============================================== -->
+        <!-- TAB 5: PORTAL SCHEDULE (समय नियंत्रण)         -->
+        <!-- ============================================== -->
+        <div id="tab-schedule" class="admin-tab-pane">
+          <!-- Test Portal Schedule & Availability Control Section -->
+          <section class="schedule-control-card">
+            <div class="schedule-header">
+              <div class="schedule-title-group">
+                <h2>
+                  <span>&#128197;</span> Test Portal Availability &amp; Deadline Schedule Control
+                </h2>
+                <p>Enforce candidate examination deadline (1 Nov 2026), extend date &amp; time, or reopen / close portal access</p>
+              </div>
+              <div id="livePortalStatusBadge" class="status-badge-live open">
+                <span class="beacon-pulse"></span>
+                <span id="livePortalStatusText">PORTAL ACTIVE &amp; OPEN</span>
+              </div>
+            </div>
+
+            <div class="schedule-body-grid">
+              <!-- Left: Live Status, Deadline & Instant Reopen/Close -->
+              <div class="status-info-box">
+                <div>
+                  <div class="info-metric-label">Configured Portal Expiry Deadline</div>
+                  <div class="info-deadline-display" id="displayDeadlineFormatted">01 Nov 2026, 11:59:59 PM IST</div>
+                  <small style="color: #64748B; font-size: 11px;">Candidate login will be strictly locked after this deadline</small>
+                </div>
+
+                <div>
+                  <div class="info-metric-label">Access Window Countdown</div>
+                  <div class="info-countdown-display" id="displayCountdown">Calculating...</div>
+                  <small id="displaySubStatus" style="color: #94A3B8; font-size: 11.5px;">Portal open for candidate login &amp; test submissions</small>
+                </div>
+
+                <div class="quick-toggle-actions">
+                  <button type="button" class="btn-toggle-open" id="btnQuickReopen" title="Reopen portal and set deadline to active">
+                    &#128275; Reopen Portal (पोर्टल खोलें)
+                  </button>
+                  <button type="button" class="btn-toggle-close" id="btnQuickClose" title="Instantly disable candidate test access">
+                    &#128274; Close Portal Now (पोर्टल बंद करें)
+                  </button>
+                </div>
+              </div>
+
+              <!-- Right: Change Date & Time and Update Schedule -->
+              <div class="schedule-editor-box">
+                <div class="editor-form-group">
+                  <label class="editor-label" for="portalDeadlinePicker">
+                    &#9200; Set Portal Closing Date &amp; Time (Indian Standard Time):
+                  </label>
+                  <div class="editor-input-row">
+                    <input type="datetime-local" id="portalDeadlinePicker" class="datetime-picker">
+                  </div>
+                  <div class="quick-preset-btns">
+                    <button type="button" class="preset-btn" id="btnPresetDefault">&#11088; 1 Nov 2026 (23:59)</button>
+                    <button type="button" class="preset-btn" id="btnPresetPlus24h">+24 Hours</button>
+                    <button type="button" class="preset-btn" id="btnPresetPlus3d">+3 Days</button>
+                    <button type="button" class="preset-btn" id="btnPresetPlus7d">+7 Days</button>
+                    <button type="button" class="preset-btn" id="btnPresetPlus30d">+30 Days</button>
+                  </div>
+                </div>
+
+                <div class="editor-form-group">
+                  <label class="editor-label" for="portalNoticeInput">
+                    &#128227; Advisory Notice to Candidates (Shown when portal is closed):
+                  </label>
+                  <textarea id="portalNoticeInput" class="notice-textarea" rows="2" placeholder="Official announcement shown to candidates once test window closes..."></textarea>
+                </div>
+
+                <button type="button" class="btn-save-schedule" id="btnSaveSchedule">
+                  &#128190; Save &amp; Apply Schedule Changes
+                </button>
+
+                <div id="scheduleAlert" class="schedule-alert-banner"></div>
+              </div>
+            </div>
+          </section>
+        </div> <!-- /tab-schedule -->
+
+      </main>
+    </div> <!-- /admin-main-wrapper -->
+  </div> <!-- /admin-layout-wrapper -->
+    <!-- Tab Switch / Proctoring Violations Detail Modal -->
+    <div id="violationsModal" class="admin-modal-overlay">
+      <div class="admin-modal-box">
+        <div class="admin-modal-header">
+          <div>
+            <h3 id="violationModalTitle">&#128065; Candidate Proctoring &amp; Tab-Switch Surveillance Audit</h3>
+            <p id="violationModalSubtitle" style="font-size: 12px; color: #94A3B8; margin-top: 2px;">Real-time integrity log of all window blur, tab-switch, and keyboard violations</p>
+          </div>
+          <button type="button" class="admin-modal-close" onclick="closeViolationsModal()">&times;</button>
+        </div>
+        <div class="admin-modal-body">
+          <div id="violationCandidateMeta" style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 14px 18px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+          </div>
+
+          <h4 style="font-size: 14px; font-weight: 700; color: #0A192F; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+            <span>&#128221; Chronological Recorded Incidents with Exact Reasons:</span>
+          </h4>
+          <div id="violationEventsList" style="display: flex; flex-direction: column; gap: 10px;">
+          </div>
+        </div>
+        <div style="padding: 14px 24px; border-top: 1px solid #E2E8F0; background: #F8FAFC; display: flex; justify-content: flex-end;">
+          <button type="button" class="btn-action btn-refresh" onclick="closeViolationsModal()">Close Audit Window</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Official Candidate Scorecard & Result PDF Modal -->
+    <div id="scorecardModal" class="admin-modal-overlay">
+      <div class="admin-modal-box" style="max-width: 900px;">
+        <div class="admin-modal-header no-print">
+          <div>
+            <h3>Official Student Scorecard &amp; Assessment Report</h3>
+            <p style="font-size: 12px; color: #94A3B8; margin-top: 2px;">Educare Academy &bull; Directorate of Examination (CBSE Class 10 Science)</p>
+          </div>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <button type="button" class="btn-action btn-export" onclick="printScorecard()" style="background: #10B981; color: white; border: none; font-weight: 700; padding: 8px 14px;">
+              &#128438; Print / Download Result (PDF)
+            </button>
+            <button type="button" class="admin-modal-close" onclick="closeScorecardModal()">&times;</button>
+          </div>
+        </div>
+        <div class="admin-modal-body" id="scorecardPrintArea">
+          <!-- Dynamically populated candidate scorecard -->
+        </div>
+      </div>
+    </div>
+
+    <!-- STUDENT CREDENTIALS EDIT MODAL (Roll & Pass Locked / Name & Class Editable) -->
+    <div id="editStudentModal" class="admin-modal-overlay">
+      <div class="admin-modal-box" style="max-width: 520px;">
+        <div class="admin-modal-header">
+          <div>
+            <h3 id="editStudentModalTitle">&#9998; Edit Student Credentials</h3>
+            <p style="font-size: 12px; color: #94A3B8; margin-top: 2px;">Educare Academy Student Roster Management</p>
+          </div>
+          <button type="button" class="admin-modal-close" onclick="closeEditStudentModal()">&times;</button>
+        </div>
+        <form id="editStudentForm" onsubmit="handleSaveStudentEdit(event)" style="padding: 20px 24px;">
+          <input type="hidden" id="editOriginalRoll">
+
+          <div style="background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 6px; padding: 10px 14px; margin-bottom: 16px; font-size: 12px; color: #92400E;">
+            &#128274; <strong>सुरक्षा नियम (Security Policy):</strong> रोल नंबर और पासवर्ड सुरक्षित लॉक्ड हैं और बदले नहीं जा सकते। छात्र का नाम, कक्षा, और फ़ोन संपादित किया जा सकता है।
+          </div>
+
+          <div style="margin-bottom: 14px;">
+            <label style="display: block; font-size: 12.5px; font-weight: 700; color: #334155; margin-bottom: 4px;">
+              Student Full Name:
+            </label>
+            <input type="text" id="editStudentName" required style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1.5px solid #CBD5E1; font-size: 14px; font-weight: 600;">
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+            <div>
+              <label style="display: block; font-size: 12.5px; font-weight: 700; color: #334155; margin-bottom: 4px;">
+                &#128274; Roll Number (Locked):
+              </label>
+              <input type="text" id="editStudentRoll" readonly disabled style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid #CBD5E1; background: #F1F5F9; color: #475569; font-family: monospace; font-weight: 700;">
+              <small style="color: #64748B; font-size: 11px;">&#128274; Fixed by policy</small>
+            </div>
+            <div>
+              <label style="display: block; font-size: 12.5px; font-weight: 700; color: #334155; margin-bottom: 4px;">
+                &#128274; Password (Locked):
+              </label>
+              <input type="text" id="editStudentPassword" readonly disabled style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid #CBD5E1; background: #F1F5F9; color: #475569; font-family: monospace; font-weight: 700;">
+              <small style="color: #64748B; font-size: 11px;">&#128274; Unguessable token</small>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+            <div>
+              <label style="display: block; font-size: 12.5px; font-weight: 700; color: #334155; margin-bottom: 4px;">
+                Class / Section:
+              </label>
+              <input type="text" id="editStudentClass" value="Class 10 CBSE" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1.5px solid #CBD5E1; font-size: 13.5px;">
+            </div>
+            <div>
+              <label style="display: block; font-size: 12.5px; font-weight: 700; color: #334155; margin-bottom: 4px;">
+                Contact / Phone:
+              </label>
+              <input type="text" id="editStudentPhone" placeholder="Mobile / WhatsApp" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1.5px solid #CBD5E1; font-size: 13.5px;">
+            </div>
+          </div>
+
+          <div id="editStudentAlert" style="display: none; font-size: 12.5px; font-weight: 600; margin-bottom: 12px;"></div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
+            <button type="button" class="btn-action" onclick="closeEditStudentModal()" style="background: #E2E8F0; color: #334155;">Cancel</button>
+            <button type="submit" class="btn-action" style="background: #0B2545; color: #FFFFFF; font-weight: 700;">&#128190; Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- PROCTORING MEDIA (COMPRESSED VIDEO & PHOTO) VIEWER MODAL -->
+    <div id="proctorMediaModal" class="admin-modal-overlay">
+      <div class="admin-modal-box" style="max-width: 640px;">
+        <div class="admin-modal-header">
+          <div>
+            <h3 id="proctorMediaTitle">&#128249; Compressed Proctoring Video &amp; Image Surveillance</h3>
+            <p id="proctorMediaSubtitle" style="font-size: 12px; color: #94A3B8; margin-top: 2px;">Live / Recorded candidate stream</p>
+          </div>
+          <button type="button" class="admin-modal-close" onclick="closeProctorMediaModal()">&times;</button>
+        </div>
+        <div class="admin-modal-body" style="padding: 20px;">
+          <!-- Video Section -->
+          <div id="proctorVideoSection" style="margin-bottom: 18px;">
+            <h4 style="font-size: 13.5px; font-weight: 700; color: #0F172A; margin-bottom: 8px;">
+              &#128249; Proctoring Video Recording (Compressed WebM Stream):
+            </h4>
+            <video id="proctorVideoPlayer" controls playsinline style="width: 100%; max-height: 360px; background: #000; border-radius: 8px;"></video>
+            <div id="proctorVideoInfo" style="font-size: 12px; color: #64748B; margin-top: 6px;"></div>
+          </div>
+
+          <!-- Photo Section -->
+          <div id="proctorPhotoSection">
+            <h4 style="font-size: 13.5px; font-weight: 700; color: #0F172A; margin-bottom: 8px;">
+              &#128247; Candidate Identity Verification Snapshot:
+            </h4>
+            <div style="text-align: center; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px;">
+              <img id="proctorCandidatePhoto" src="" alt="Candidate Photo" style="max-width: 280px; max-height: 200px; border-radius: 6px; border: 1px solid #CBD5E1;">
+            </div>
+          </div>
+        </div>
+        <div style="padding: 12px 20px; border-top: 1px solid #E2E8F0; background: #F8FAFC; display: flex; justify-content: flex-end;">
+          <button type="button" class="btn-action" onclick="closeProctorMediaModal()" style="background: #0B2545; color: white;">Close Media</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADD NEW STUDENT MODAL -->
+    <div id="addStudentModal" class="admin-modal-overlay">
+      <div class="admin-modal-box" style="max-width: 520px;">
+        <div class="admin-modal-header">
+          <div>
+            <h3>&#10133; Enroll New Student</h3>
+            <p style="font-size: 12px; color: #94A3B8; margin-top: 2px;">Educare Academy &bull; CBSE Class 10 Science Test</p>
+          </div>
+          <button type="button" class="admin-modal-close" onclick="closeAddStudentModal()">&times;</button>
+        </div>
+        <form id="addStudentForm" onsubmit="handleSaveNewStudent(event)" style="padding: 20px 24px;">
+          <div style="margin-bottom: 14px;">
+            <label style="display: block; font-size: 12.5px; font-weight: 700; color: #334155; margin-bottom: 4px;">
+              Student Full Name: *
+            </label>
+            <input type="text" id="addStudentName" required placeholder="Enter student's full name" style="width: 100%; padding: 9px 12px; border-radius: 6px; border: 1.5px solid #CBD5E1; font-size: 14px; font-weight: 600;">
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+            <div>
+              <label style="display: block; font-size: 12.5px; font-weight: 700; color: #334155; margin-bottom: 4px;">
+                Class / Section:
+              </label>
+              <input type="text" id="addStudentClass" value="Class 10 CBSE" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1.5px solid #CBD5E1; font-size: 13.5px;">
+            </div>
+            <div>
+              <label style="display: block; font-size: 12.5px; font-weight: 700; color: #334155; margin-bottom: 4px;">
+                WhatsApp Phone:
+              </label>
+              <input type="tel" id="addStudentPhone" placeholder="10-digit mobile number" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1.5px solid #CBD5E1; font-size: 13.5px;">
+            </div>
+          </div>
+
+          <div style="background: #F8FAFC; border: 1.5px solid #E2E8F0; border-radius: 8px; padding: 12px 14px; margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span style="font-size: 12px; font-weight: 700; color: #475569; text-transform: uppercase;">Generated Credentials Preview</span>
+              <button type="button" class="btn-xs" onclick="regenerateAddStudentRollPass()" style="background: #E2E8F0; color: #334155; cursor: pointer;">&#127922; Re-Roll</button>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div>
+                <small style="font-size: 11px; color: #64748B; display: block;">Roll Number:</small>
+                <input type="text" id="addStudentRoll" readonly style="width: 100%; padding: 6px 10px; border-radius: 5px; border: 1px solid #CBD5E1; background: #FFFFFF; font-family: monospace; font-weight: 800; color: #1D4ED8;">
+              </div>
+              <div>
+                <small style="font-size: 11px; color: #64748B; display: block;">Confidential Password:</small>
+                <input type="text" id="addStudentPassword" readonly style="width: 100%; padding: 6px 10px; border-radius: 5px; border: 1px solid #CBD5E1; background: #FFFFFF; font-family: monospace; font-weight: 800; color: #D97706;">
+              </div>
+            </div>
+            <small style="font-size: 11px; color: #94A3B8; display: block; margin-top: 6px;">&#128274; Unpredictable cryptographic credentials automatically generated.</small>
+          </div>
+
+          <div id="addStudentAlert" style="display: none; font-size: 12.5px; font-weight: 600; margin-bottom: 12px;"></div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px;">
+            <button type="button" class="btn-action" onclick="closeAddStudentModal()" style="background: #E2E8F0; color: #334155;">Cancel</button>
+            <button type="submit" class="btn-action" style="background: #10B981; color: #FFFFFF; font-weight: 700;">&#10133; Enroll Student &amp; Sync</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- WHATSAPP CREDENTIALS SHARE POPUP MODAL -->
+    <div id="shareStudentWaModal" class="admin-modal-overlay">
+      <div class="admin-modal-box" style="max-width: 500px;">
+        <div class="admin-modal-header" style="background: #064E3B;">
+          <div>
+            <h3 style="color: #ECFDF5;">&#128172; Send Test Credentials via WhatsApp</h3>
+            <p style="font-size: 12px; color: #A7F3D0; margin-top: 2px;">Educare Academy Student Notification</p>
+          </div>
+          <button type="button" class="admin-modal-close" onclick="closeShareStudentWaModal()">&times;</button>
+        </div>
+        <div class="admin-modal-body" style="padding: 20px;">
+          <div id="shareWaDetailsBox" style="background: #F0FDF4; border: 1.5px solid #86EFAC; border-radius: 8px; padding: 14px; margin-bottom: 16px; font-size: 13px; line-height: 1.5; color: #065F46;">
+          </div>
+          <div style="display: flex; gap: 10px; flex-direction: column;">
+            <a id="btnOpenWhatsAppDirect" href="#" target="_blank" class="btn-action" style="background: #25D366; color: white; border: none; font-weight: 700; text-align: center; text-decoration: none; padding: 12px 16px; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; border-radius: 6px;">
+              <span>&#128241;</span> Open in WhatsApp (Send Test Details)
+            </a>
+            <button type="button" class="btn-action" onclick="copyWaTextToClipboard()" style="background: #0F172A; color: white; border: none; font-weight: 600; padding: 10px 14px; border-radius: 6px;">
+              &#128203; Copy Message to Clipboard
+            </button>
+          </div>
+        </div>
+        <div style="padding: 10px 20px; background: #F8FAFC; border-top: 1px solid #E2E8F0; display: flex; justify-content: flex-end;">
+          <button type="button" class="btn-action" onclick="closeShareStudentWaModal()" style="background: #E2E8F0; color: #334155;">Close</button>
+        </div>
+      </div>
+    </div>
+
+  </div> <!-- /adminPortalWrapper -->
+
+  <script>
+    // --- ADMIN SIDEBAR NAVIGATION & TAB SWITCHING ---
+    const TAB_TITLES = {
+      'tab-dashboard': {
+        title: 'Educare Academy \u2022 Executive Dashboard',
+        subtitle: 'Live candidate KPIs, current active chapter, and quick portal status overview'
+      },
+      'tab-students': {
+        title: 'Candidate Master Ledger & Student Details',
+        subtitle: '500 enrolled CBSE students, credentials, WhatsApp notifications, and test performance'
+      },
+      'tab-questions': {
+        title: 'Live NCERT Scraper & WhatsApp Question Dispatch',
+        subtitle: 'Scrape 50-question pool from internet & send daily 25 questions to +91 8448467381'
+      },
+      'tab-proctoring': {
+        title: 'Proctor Surveillance & Anti-Cheat Security Audit',
+        subtitle: 'Tab-switch logs, background media capture, and 1:00 AM daily automated storage purge'
+      },
+      'tab-schedule': {
+        title: 'Portal Availability & Examination Deadline Control',
+        subtitle: 'Configure examination deadline, live countdown, and instant reopen / close access'
+      }
+    };
+
+    function switchAdminTab(tabId) {
+      // Update sidebar nav buttons
+      document.querySelectorAll('.admin-sidebar-nav-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-tab') === tabId);
+      });
+
+      // Show target tab pane, hide others
+      document.querySelectorAll('.admin-tab-pane').forEach(pane => {
+        pane.classList.remove('active');
+        pane.style.display = 'none';
+      });
+      const targetPane = document.getElementById(tabId);
+      if (targetPane) {
+        targetPane.classList.add('active');
+        targetPane.style.display = 'block';
+      }
+
+      // Update Top Header Titles
+      if (TAB_TITLES[tabId]) {
+        const tEl = document.getElementById('adminHeaderTabTitle');
+        const sEl = document.getElementById('adminHeaderTabSubtitle');
+        if (tEl) tEl.textContent = TAB_TITLES[tabId].title;
+        if (sEl) sEl.textContent = TAB_TITLES[tabId].subtitle;
+      }
+
+      // Close mobile sidebar if open
+      closeMobileSidebar();
+
+      // Scroll to top of content
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function toggleAdminSidebar() {
+      const sidebar = document.getElementById('adminSidebar');
+      const overlay = document.getElementById('adminSidebarOverlay');
+      const btn = document.getElementById('adminHamburgerBtn');
+      if (!sidebar) return;
+
+      if (window.innerWidth <= 900) {
+        sidebar.classList.toggle('mobile-open');
+        const isOpen = sidebar.classList.contains('mobile-open');
+        if (overlay) overlay.style.display = isOpen ? 'block' : 'none';
+        if (btn) btn.classList.toggle('active', isOpen);
+      } else {
+        sidebar.classList.toggle('collapsed');
+        if (btn) btn.classList.toggle('active', sidebar.classList.contains('collapsed'));
+      }
+    }
+
+    function closeMobileSidebar() {
+      const sidebar = document.getElementById('adminSidebar');
+      const overlay = document.getElementById('adminSidebarOverlay');
+      const btn = document.getElementById('adminHamburgerBtn');
+      if (sidebar && sidebar.classList.contains('mobile-open')) {
+        sidebar.classList.remove('mobile-open');
+        if (overlay) overlay.style.display = 'none';
+        if (btn) btn.classList.remove('active');
+      }
+    }
+
+    // STRICT MASTER ADMINISTRATOR KEY: Rockey6974@ (Enforced on search & reload)
+    const VALID_ADMIN_PASSWORDS = [
+      'Rockey6974@'
+    ];
+
+    // Clear session storage on every page visit or browser refresh so Rockey6974@ is ALWAYS asked
+    sessionStorage.removeItem('educare_admin_auth');
+
+    // Automatically attach x-admin-key to all /api/admin/ requests
+    const _origFetch = window.fetch;
+    window.fetch = function(url, options = {}) {
+      const auth = sessionStorage.getItem('educare_admin_auth') || 'Rockey6974@';
+      if (typeof url === 'string' && url.includes('/api/admin/')) {
+        options = options || {};
+        options.headers = options.headers || {};
+        if (options.headers instanceof Headers) {
+          options.headers.set('x-admin-key', auth);
+        } else {
+          options.headers['x-admin-key'] = auth;
+        }
+      }
+      return _origFetch(url, options);
+    };
+
+    function checkAdminAuth() {
+      const authed = sessionStorage.getItem('educare_admin_auth');
+      const overlay = document.getElementById('adminAuthOverlay');
+      const wrapper = document.getElementById('adminPortalWrapper');
+      
+      if (authed && VALID_ADMIN_PASSWORDS.includes(authed)) {
+        if (overlay) overlay.style.display = 'none';
+        if (wrapper) wrapper.style.display = 'block';
+        return true;
+      } else {
+        if (wrapper) wrapper.style.display = 'none';
+        if (overlay) {
+          overlay.style.display = 'flex';
+          const pwdInput = document.getElementById('adminAuthPassword');
+          if (pwdInput) {
+            pwdInput.value = '';
+            setTimeout(() => pwdInput.focus(), 150);
+          }
+        }
+        return false;
+      }
+    }
+
+    function handleAdminLogin(e) {
+      if (e) e.preventDefault();
+      const pwdInput = document.getElementById('adminAuthPassword');
+      const errBox = document.getElementById('adminAuthError');
+      const val = (pwdInput.value || '').trim();
+
+      if (VALID_ADMIN_PASSWORDS.includes(val)) {
+        sessionStorage.setItem('educare_admin_auth', val);
+        errBox.style.display = 'none';
+        const overlay = document.getElementById('adminAuthOverlay');
+        const wrapper = document.getElementById('adminPortalWrapper');
+        if (overlay) overlay.style.display = 'none';
+        if (wrapper) wrapper.style.display = 'block';
+        loadData();
+        loadPortalSchedule();
+        if (!syncIntervalId) {
+          syncIntervalId = setInterval(loadData, 2500); // Realtime 2.5s Sync with student portal
+        }
+      } else {
+        errBox.style.display = 'block';
+        errBox.innerHTML = '&#9888; <strong>Access Denied:</strong> Incorrect Master Key. Authorized key: <code>Rockey6974@</code>';
+        pwdInput.focus();
+        pwdInput.select();
+      }
+    }
+
+    function handleAdminLogout() {
+      if (confirm('Lock Admin Console now?\n\nYou will need to re-enter the master administrator password.')) {
+        sessionStorage.removeItem('educare_admin_auth');
+        if (syncIntervalId) {
+          clearInterval(syncIntervalId);
+          syncIntervalId = null;
+        }
+        checkAdminAuth();
+      }
+    }
+
+    let allStudents = [];
+    let currentFilter = 'all';
+    let searchQuery = '';
+
+    function generateFallbackRoster() {
+      let localRecords = [];
+      try {
+        localRecords = JSON.parse(localStorage.getItem('educare_cbse_student_records') || '[]');
+      } catch (e) {}
+
+      const localMap = new Map();
+      localRecords.forEach(r => localMap.set(r.roll, r));
+
+      let completedCount = 0;
+      let eligibleCount = 0;
+      let notEligibleCount = 0;
+      let disqualifiedCount = 0;
+
+      const list = [];
+      for (let i = 1; i <= 500; i++) {
+        const rollSuffix = String(i).padStart(3, '0');
+        const roll = `26CBSEBRD${rollSuffix}`;
+        const pwd = `Edu@${8000 + i}#`;
+        const rec = localMap.get(roll);
+
+        if (rec) {
+          completedCount++;
+          const isCancelled = rec.completionType === 'ATTEMPT_CANCELLED_TAB_SWITCH';
+          const isDisq = rec.status === 'DISQUALIFIED' || rec.disqualified || isCancelled;
+          const isPass = !isCancelled && rec.score >= 13;
+          let el = 'ELIGIBLE';
+          if (isCancelled) { el = 'DISQUALIFIED'; disqualifiedCount++; }
+          else if (isDisq) { el = 'DISQUALIFIED'; disqualifiedCount++; }
+          else if (isPass) { el = 'ELIGIBLE'; eligibleCount++; }
+          else { el = 'NOT_ELIGIBLE'; notEligibleCount++; }
+
+          list.push({
+            serial: i,
+            name: rec.name || `Student #${i}`,
+            roll: roll,
+            password: pwd,
+            attempted: true,
+            score: rec.score,
+            total: rec.total || 25,
+            percentage: rec.percentage || Math.round((rec.score / (rec.total || 25)) * 100),
+            status: rec.status || (isCancelled ? 'Cancelled' : (isPass ? 'Passed' : 'Failed')),
+            completionType: rec.completionType,
+            eligibility: el,
+            completedAt: rec.date || rec.completedAt || '-',
+            timestamp: rec.timestamp || 0
+          });
+        } else {
+          list.push({
+            serial: i,
+            name: `Student #${i}`,
+            roll: roll,
+            password: pwd,
+            attempted: false,
+            score: null,
+            total: 25,
+            percentage: null,
+            status: 'Pending',
+            eligibility: 'PENDING',
+            completedAt: '-',
+            timestamp: 0
+          });
+        }
+      }
+
+      return {
+        summary: {
+          totalEnrolled: 500,
+          completed: completedCount,
+          pending: 500 - completedCount,
+          eligible: eligibleCount,
+          notEligible: notEligibleCount,
+          disqualified: disqualifiedCount,
+          passPercentage: completedCount > 0 ? Math.round((eligibleCount / completedCount) * 100) : 0
+        },
+        students: list
+      };
+    }
+
+    async function loadData() {
+      try {
+        const res = await fetch('/api/admin/all-students');
+        const data = await res.json();
+        if (!data.success) throw new Error('API failure');
+
+        allStudents = data.students || [];
+        updateStats(data.summary);
+        renderTable();
+      } catch (err) {
+        console.warn('Backend API unavailable, using client fallback roster:', err);
+        const fallback = generateFallbackRoster();
+        allStudents = fallback.students;
+        updateStats(fallback.summary);
+        renderTable();
+      }
+    }
+
+    let syncIntervalId = null;
+
+    function updateStats(summary) {
+      if (!summary) return;
+      document.getElementById('statTotal').innerHTML = `${summary.totalEnrolled} <span class="stat-sub">Students</span>`;
+      if (document.getElementById('statInProgress')) {
+        document.getElementById('statInProgress').innerHTML = `${summary.inProgress || 0} <span class="stat-sub">Active Now</span>`;
+      }
+      document.getElementById('statCompleted').innerHTML = `${summary.completed} <span class="stat-sub">(${summary.passPercentage}% Pass Rate)</span>`;
+      document.getElementById('statEligible').innerHTML = `${summary.eligible} <span class="stat-sub">(&ge; 50% Marks)</span>`;
+      document.getElementById('statNotEligible').innerHTML = `${summary.notEligible} <span class="stat-sub">(&lt; 50% Marks)</span>`;
+      document.getElementById('statPending').innerHTML = `${summary.pending} <span class="stat-sub">Remaining</span>`;
+
+      document.getElementById('countAll').textContent = summary.totalEnrolled;
+      if (document.getElementById('countInProgress')) {
+        document.getElementById('countInProgress').textContent = summary.inProgress || 0;
+      }
+      document.getElementById('countEligible').textContent = summary.eligible;
+      document.getElementById('countNotEligible').textContent = summary.notEligible;
+      document.getElementById('countCompleted').textContent = summary.completed;
+      document.getElementById('countPending').textContent = summary.pending;
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('rosterTableBody');
+      const q = searchQuery.toLowerCase().trim();
+
+      const filtered = allStudents.filter(s => {
+        // Filter by tab
+        if (currentFilter === 'in_progress' && !s.isInProgress) return false;
+        if (currentFilter === 'eligible' && s.eligibility !== 'ELIGIBLE') return false;
+        if (currentFilter === 'not_eligible' && s.eligibility !== 'NOT_ELIGIBLE') return false;
+        if (currentFilter === 'completed' && !s.attempted) return false;
+        if (currentFilter === 'pending' && (s.attempted || s.isInProgress)) return false;
+
+        // Search query
+        if (q) {
+          const matchRoll = (s.roll || '').toLowerCase().includes(q);
+          const matchName = (s.name || '').toLowerCase().includes(q);
+          const matchSerial = String(s.serial).includes(q);
+          if (!matchRoll && !matchName && !matchSerial) return false;
+        }
+
+        return true;
+      });
+
+      // Priority sort: 1) Live in-progress, 2) Completed (newest first), 3) Pending
+      filtered.sort((a, b) => {
+        if (a.isInProgress && !b.isInProgress) return -1;
+        if (!a.isInProgress && b.isInProgress) return 1;
+        if (a.attempted && !b.attempted) return -1;
+        if (!a.attempted && b.attempted) return 1;
+        if (a.attempted && b.attempted) {
+          return (b.timestamp || 0) - (a.timestamp || 0);
+        }
+        return (a.serial || 0) - (b.serial || 0);
+      });
+
+      document.getElementById('visibleCount').textContent = filtered.length;
+      document.getElementById('totalCount').textContent = allStudents.length;
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="10" style="text-align: center; padding: 30px; color: #64748B;">
+              No candidates match the selected filter / search query.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      let html = '';
+      filtered.forEach(s => {
+        // 1. Exam Status Badge
+        let statusBadge = '';
+        if (s.isInProgress) {
+          statusBadge = `<span class="badge badge-in-progress"><span class="live-dot-inline"></span> LIVE (${s.timeSpentFormatted || 'In Progress'})</span>`;
+        } else if (s.completionType === 'ATTEMPT_CANCELLED_TAB_SWITCH') {
+          statusBadge = `<span class="badge badge-disqualified" style="background:#FEE2E2; color:#991B1B; border:1.5px solid #F87171;" title="Student exceeded 3 tab switches - attempt cancelled">&#9888; Tab Cancelled (3/3)</span>`;
+        } else if (s.attempted) {
+          if (s.completionType === 'EARLY_SUBMIT') {
+            statusBadge = `<span class="badge badge-early" title="Student finished and submitted early">&#9889; Early Submit (${s.timeSpentFormatted || '< 25m'})</span>`;
+          } else if (s.completionType === 'TIME_EXPIRED') {
+            statusBadge = `<span class="badge badge-timer" title="25 minutes completed">&#9200; Time Expired (25m)</span>`;
+          } else if (s.completionType === 'DISQUALIFIED') {
+            statusBadge = `<span class="badge badge-disqualified">&#9888; Disqualified (UFM)</span>`;
+          } else {
+            statusBadge = `<span class="badge badge-completed">&#10004; Submitted (${s.timeSpentFormatted || ''})</span>`;
+          }
+        } else {
+          statusBadge = `<span class="badge badge-pending">&#9203; Pending</span>`;
+        }
+
+        // 2. Tab Switches & Strikes
+        let strikesHtml = '';
+        const vCount = s.violationsCount || (s.violations ? s.violations.length : 0);
+        if (s.attempted || s.isInProgress) {
+          if (vCount === 0) {
+            strikesHtml = `<span class="badge badge-strike-zero">&#10004; 0 Strikes (Clean)</span>`;
+          } else {
+            const warnClass = vCount >= 3 ? 'badge-strike-danger' : 'badge-strike-warn';
+            strikesHtml = `
+              <div class="strike-cell-wrap">
+                <span class="badge ${warnClass}">&#9888; ${vCount} Strikes</span>
+                <button type="button" class="btn-xs btn-reasons" onclick="openViolationsModal('${s.roll}')" title="View exact tab-switch reasons and timestamps">
+                  &#128065; Reasons (${vCount})
+                </button>
+              </div>
+            `;
+          }
+        } else {
+          strikesHtml = `<span style="color:#94A3B8;">--</span>`;
+        }
+
+        // 3. Eligibility Decision
+        let eligibilityBadge = '';
+        if (s.completionType === 'ATTEMPT_CANCELLED_TAB_SWITCH') {
+          eligibilityBadge = '<span class="badge badge-disqualified" style="background:#FEE2E2; color:#991B1B;">&#9888; CANCELLED (Tab Switch)</span>';
+        } else if (s.eligibility === 'ELIGIBLE') {
+          eligibilityBadge = '<span class="badge badge-eligible">&#10004; ELIGIBLE / QUALIFIED</span>';
+        } else if (s.eligibility === 'NOT_ELIGIBLE') {
+          eligibilityBadge = '<span class="badge badge-not-eligible">&#10008; NOT ELIGIBLE / FAILED</span>';
+        } else if (s.eligibility === 'DISQUALIFIED') {
+          eligibilityBadge = '<span class="badge badge-disqualified">&#9888; DISQUALIFIED (UFM)</span>';
+        } else if (s.isInProgress) {
+          eligibilityBadge = '<span class="badge badge-in-progress">&#9679; TEST IN PROGRESS</span>';
+        } else {
+          eligibilityBadge = '<span class="badge badge-pending">&#9203; PENDING ATTEMPT</span>';
+        }
+
+        const scoreDisplay = s.attempted ? `<strong>${s.score}</strong> / ${s.total || 25}` : '<span style="color:#94A3B8;">--</span>';
+        const dateDisplay = s.completedAt && s.completedAt !== '-' ? s.completedAt : (s.isInProgress ? '<span style="color:#0284C7; font-weight:600;">Active Session</span>' : '<span style="color:#94A3B8;">Not attempted</span>');
+
+        // 4. Action Buttons (WhatsApp, Edit, Media, Result, Reset)
+        const actionHtml = `
+          <div class="action-btn-group">
+            <button type="button" class="btn-action-sm btn-wa" onclick="shareStudentCredentialsWhatsApp('${s.roll}')" title="Send exam credentials to student/parent via WhatsApp">
+              &#128172; WhatsApp
+            </button>
+            <button type="button" class="btn-action-sm btn-edit" onclick="openEditStudentModal('${s.roll}')" title="Edit student credentials (Name, Class, Phone)">
+              &#9998; Edit
+            </button>
+            <button type="button" class="btn-action-sm btn-media" onclick="openProctorMediaModal('${s.roll}')" title="View proctoring video &amp; captured image">
+              &#128249; Media
+            </button>
+            <button type="button" class="btn-action-sm btn-view-result" onclick="openScorecardModal('${s.roll}')" title="View official scorecard report">
+              &#128196; Result
+            </button>
+            <button type="button" class="btn-action-sm btn-reset-single" onclick="resetStudentAttempt('${s.roll}')" title="Reset attempt &amp; allow student to re-take exam">
+              &#8635; Reset
+            </button>
+          </div>
+        `;
+
+        html += `
+          <tr>
+            <td><span style="font-size: 11.5px; color: #64748B;">#${s.serial}</span></td>
+            <td><strong class="roll-code">${s.roll}</strong></td>
+            <td><strong>${s.name}</strong></td>
+            <td><span class="pwd-code">${s.password}</span></td>
+            <td>${statusBadge}</td>
+            <td>${scoreDisplay}</td>
+            <td>${strikesHtml}</td>
+            <td>${eligibilityBadge}</td>
+            <td style="font-size: 12px; color: #475569;">${dateDisplay}</td>
+            <td style="text-align: right;">${actionHtml}</td>
+          </tr>
+        `;
+      });
+
+      tbody.innerHTML = html;
+    }
+
+    // -------------------------------------------------------------
+    // VIOLATIONS MODAL LOGIC (Tab-Switch Reasons)
+    // -------------------------------------------------------------
+    function openViolationsModal(roll) {
+      const student = allStudents.find(s => s.roll === roll);
+      if (!student) return;
+
+      const vCount = student.violationsCount || (student.violations ? student.violations.length : 0);
+      document.getElementById('violationModalTitle').innerHTML = `&#128065; Proctoring Audit: ${student.name} (${student.roll})`;
+      document.getElementById('violationModalSubtitle').textContent = `Strike Count: ${vCount} of 3 Strikes Allowed | Status: ${student.status}`;
+
+      const metaBox = document.getElementById('violationCandidateMeta');
+      metaBox.innerHTML = `
+        <div>
+          <div style="font-size: 11px; text-transform: uppercase; color: #64748B; font-weight: 700;">Candidate Details</div>
+          <div style="font-size: 14px; font-weight: 700; color: #0A192F;">${student.name} (#${student.serial})</div>
+          <div style="font-family: monospace; font-size: 13px; color: #1E40AF; font-weight: 700;">${student.roll}</div>
+        </div>
+        <div>
+          <div style="font-size: 11px; text-transform: uppercase; color: #64748B; font-weight: 700;">Proctoring Status</div>
+          <div style="font-size: 14px; font-weight: 800; color: ${vCount >= 3 ? '#DC2626' : (vCount > 0 ? '#D97706' : '#15803D')};">
+            ${vCount >= 3 ? '&#9888; DISQUALIFIED (Limit Exceeded)' : (vCount > 0 ? `&#9888; ${vCount} Strikes Recorded` : '&#10004; 100% Clean Proctoring')}
+          </div>
+        </div>
+        <div>
+          <div style="font-size: 11px; text-transform: uppercase; color: #64748B; font-weight: 700;">Session Activity</div>
+          <div style="font-size: 13px; color: #0A192F; font-weight: 600;">${student.completedAt || student.timeSpentFormatted || 'Active'}</div>
+        </div>
+      `;
+
+      const listDiv = document.getElementById('violationEventsList');
+      const violations = student.violations || [];
+
+      if (!violations.length) {
+        listDiv.innerHTML = `
+          <div style="background: #F0FDF4; border: 1.5px solid #86EFAC; border-radius: 8px; padding: 18px; text-align: center; color: #15803D;">
+            <div style="font-size: 24px; margin-bottom: 6px;">&#10004;</div>
+            <strong style="font-size: 15px;">Zero Proctoring Violations Recorded</strong>
+            <p style="font-size: 12.5px; color: #166534; margin-top: 4px;">Candidate remained inside the locked exam window throughout the entire test without any tab switches or application window blur events.</p>
+          </div>
+        `;
+      } else {
+        let eventsHtml = '';
+        violations.forEach((v, idx) => {
+          eventsHtml += `
+            <div style="background: #FFFBEB; border: 1.5px solid #FDE68A; border-left: 5px solid #D97706; border-radius: 6px; padding: 14px 16px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span style="font-size: 12px; font-weight: 800; color: #B45309; text-transform: uppercase; letter-spacing: 0.5px;">
+                  &#9888; Strike #${v.strike || idx + 1}
+                </span>
+                <span style="font-size: 12px; color: #64748B; font-family: monospace;">
+                  &#9202; ${v.time || (v.timestamp ? new Date(v.timestamp).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata' }) : 'Logged')}
+                </span>
+              </div>
+              <div style="font-size: 13.5px; font-weight: 600; color: #78350F; line-height: 1.4;">
+                ${v.reason || 'Proctoring tab switch violation'}
+              </div>
+            </div>
+          `;
+        });
+        listDiv.innerHTML = eventsHtml;
+      }
+
+      document.getElementById('violationsModal').classList.add('active');
+    }
+
+    function closeViolationsModal() {
+      document.getElementById('violationsModal').classList.remove('active');
+    }
+
+    // -------------------------------------------------------------
+    // SCORECARD MODAL & DOWNLOAD PDF
+    // -------------------------------------------------------------
+    async function openScorecardModal(roll) {
+      let student = allStudents.find(s => s.roll === roll);
+      if (!student) return;
+
+      // Try fetching fresh report if solutions are empty
+      if (!student.solutions || student.solutions.length === 0) {
+        try {
+          const res = await fetch(`/api/admin/student-report?roll=${encodeURIComponent(roll)}`);
+          const data = await res.json();
+          if (data.success && data.report) {
+            student = { ...student, ...data.report };
+          }
+        } catch (e) {}
+      }
+
+      const isAttempted = !!student.attempted;
+      const isLive = !!student.isInProgress;
+      const isDisq = student.status === 'DISQUALIFIED' || student.completionType === 'DISQUALIFIED' || student.eligibility === 'DISQUALIFIED';
+      const isPass = isAttempted && !isDisq && (student.score >= 10);
+      const vCount = student.violationsCount || (student.violations ? student.violations.length : 0);
+
+      let stampHtml = '';
+      if (isDisq) {
+        stampHtml = `<div class="cert-stamp-badge disqualified">&#9888; DISQUALIFIED</div>`;
+      } else if (isPass) {
+        stampHtml = `<div class="cert-stamp-badge eligible">&#10004; ELIGIBLE / QUALIFIED</div>`;
+      } else if (isAttempted) {
+        stampHtml = `<div class="cert-stamp-badge not-eligible">&#10008; NOT ELIGIBLE / FAILED</div>`;
+      } else if (isLive) {
+        stampHtml = `<div class="cert-stamp-badge in-progress" style="background:#0284C7; border-color:#38BDF8; color:#FFFFFF;">&#9679; TEST IN PROGRESS</div>`;
+      } else {
+        stampHtml = `<div class="cert-stamp-badge pending" style="background:#475569; border-color:#64748B; color:#FFFFFF;">&#9203; PENDING ATTEMPT</div>`;
+      }
+
+      let solutionsHtml = '';
+      if (student.solutions && student.solutions.length > 0) {
+        let rows = '';
+        student.solutions.forEach(sol => {
+          rows += `
+            <tr>
+              <td style="text-align: center; font-weight: 700;">Q${sol.qIndex}</td>
+              <td><span style="font-size:11px; color:#475569;">Sec ${sol.section}</span></td>
+              <td>
+                <div style="font-weight: 600;">${sol.questionText}</div>
+                ${sol.explanation ? `<small style="color:#64748B; font-style:italic;">${sol.explanation}</small>` : ''}
+              </td>
+              <td>${sol.userAnswerText}</td>
+              <td style="color:#15803D; font-weight:700;">${sol.correctAnswerText}</td>
+              <td style="text-align: center; font-weight: 700; color: ${sol.isCorrect ? '#15803D' : (sol.isSkipped ? '#64748B' : '#DC2626')};">
+                ${sol.isCorrect ? '&#10004; +1.0' : (sol.isSkipped ? '0.0 (Skipped)' : '&#10008; 0.0')}
+              </td>
+            </tr>
+          `;
+        });
+
+        solutionsHtml = `
+          <h4 style="font-size: 14px; font-weight: 700; color: #0A192F; margin: 24px 0 10px 0;">
+            Question-by-Question Performance Evaluation:
+          </h4>
+          <div style="overflow-x: auto;">
+            <table class="cert-solutions-table">
+              <thead>
+                <tr>
+                  <th style="width: 45px; text-align: center;">Q#</th>
+                  <th style="width: 60px;">Section</th>
+                  <th>Question &amp; Key Concept</th>
+                  <th>Candidate's Answer</th>
+                  <th>Official Correct Answer</th>
+                  <th style="width: 90px; text-align: center;">Marks</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rows}
+              </tbody>
+            </table>
+          </div>
+        `;
+      } else {
+        solutionsHtml = `
+          <div style="background: ${isLive ? '#F0F9FF' : '#F8FAFC'}; border: 1.5px solid ${isLive ? '#BAE6FD' : '#E2E8F0'}; border-radius: 8px; padding: 22px; text-align: center; margin: 20px 0;">
+            <div style="font-size: 32px; margin-bottom: 6px;">${isLive ? '&#9201;' : '&#128196;'}</div>
+            <strong style="font-size: 15px; color: #0F172A; display: block;">
+              ${isLive ? 'Candidate Examination Currently Active in Real-Time' : 'Candidate Has Not Completed Examination Yet'}
+            </strong>
+            <p style="font-size: 12.5px; color: #64748B; margin-top: 4px; max-width: 550px; margin-left: auto; margin-right: auto;">
+              ${isLive ? 'The candidate is answering questions live. Detailed responses will appear immediately upon test submission.' : 'Candidate credentials generated. Complete response ledger and question-by-question analysis will be available once the student finishes their test.'}
+            </p>
+          </div>
+        `;
+      }
+
+      const printArea = document.getElementById('scorecardPrintArea');
+      printArea.innerHTML = `
+        <div class="scorecard-certificate">
+          <div class="cert-header">
+            <div class="cert-logo-badge">&#127891;</div>
+            <div class="cert-title">EDUCARE ACADEMY</div>
+            <div class="cert-subtitle">Directorate of Secondary Education &bull; CBSE Class 10th Science &bull; Weekly CBT Examination</div>
+            <div style="font-size: 11px; color: #94A3B8; margin-top: 4px;">Assessment &amp; Anti-Cheating Surveillance Report</div>
+          </div>
+
+          <div class="cert-candidate-grid">
+            <div>
+              <div class="cert-field-label">Student Full Name</div>
+              <div class="cert-field-val">${student.name}</div>
+            </div>
+            <div>
+              <div class="cert-field-label">Roll Number (Protected)</div>
+              <div class="cert-field-val" style="color: #1E40AF; font-family: monospace;">${student.roll}</div>
+            </div>
+            <div>
+              <div class="cert-field-label">Authorized Serial #</div>
+              <div class="cert-field-val">Student #${student.serial}</div>
+            </div>
+            <div>
+              <div class="cert-field-label">Submission Date &amp; Time</div>
+              <div class="cert-field-val">${student.completedAt || '-'}</div>
+            </div>
+            <div>
+              <div class="cert-field-label">Exam Duration &amp; Mode</div>
+              <div class="cert-field-val">${student.timeSpentFormatted ? `${student.timeSpentFormatted} (${student.completionType === 'EARLY_SUBMIT' ? 'Early Submission' : (student.completionType === 'ATTEMPT_CANCELLED_TAB_SWITCH' ? 'Cancelled (Tab Switch)' : 'Timer Expired')})` : '25 Minutes Standard'}</div>
+            </div>
+            <div>
+              <div class="cert-field-label">Proctoring Surveillance</div>
+              <div class="cert-field-val" style="color: ${vCount >= 3 ? '#DC2626' : (vCount > 0 ? '#D97706' : '#15803D')};">
+                ${vCount} Tab-Switches / Strikes Recorded
+              </div>
+            </div>
+          </div>
+
+          <div class="cert-scores-summary">
+            <div class="cert-score-box">
+              <div class="cert-field-label">Total Score</div>
+              <div class="cert-score-num" style="color: #1D4ED8;">${isAttempted && student.score !== null ? `${student.score} / ${student.total || 25}` : '-- / 25'}</div>
+            </div>
+            <div class="cert-score-box">
+              <div class="cert-field-label">Percentage</div>
+              <div class="cert-score-num">${isAttempted && student.percentage !== null ? `${student.percentage}%` : '--%'}</div>
+            </div>
+            <div class="cert-score-box">
+              <div class="cert-field-label">Sec A (Science MCQs)</div>
+              <div class="cert-score-num">${isAttempted && student.secAScore !== null && student.secAScore !== undefined ? `${student.secAScore} / 20` : (isAttempted && student.score !== null ? `${Math.min(student.score, 20)} / 20` : '-- / 20')}</div>
+            </div>
+            <div class="cert-score-box">
+              <div class="cert-field-label">Sec B (Assertion &amp; Reasoning)</div>
+              <div class="cert-score-num">${isAttempted && student.secBScore !== null && student.secBScore !== undefined ? `${student.secBScore} / 5` : (isAttempted && student.score !== null ? `${Math.max(0, student.score - 20)} / 5` : '-- / 5')}</div>
+            </div>
+            <div class="cert-score-box" style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
+              <div class="cert-field-label" style="margin-bottom: 4px;">Official Determination</div>
+              ${stampHtml}
+            </div>
+          </div>
+
+          ${solutionsHtml}
+
+          <div style="margin-top: 30px; padding-top: 16px; border-top: 1px dashed #CBD5E1; display: flex; justify-content: space-between; align-items: flex-end; font-size: 11px; color: #64748B;">
+            <div>
+              <strong>Audit Verification:</strong> Confirmed via Educare CBT Anti-Cheating Surveillance Engine.<br>
+              Document is valid without signature when certified electronically.
+            </div>
+            <div style="text-align: right;">
+              <strong>Examination Authority</strong><br>
+              Educare Academy Examination Cell
+            </div>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('scorecardModal').classList.add('active');
+    }
+
+    function closeScorecardModal() {
+      document.getElementById('scorecardModal').classList.remove('active');
+    }
+
+    function printScorecard() {
+      window.print();
+    }
+
+    async function resetStudentAttempt(roll) {
+      if (!confirm(`Are you sure you want to reset the exam attempt for ${roll}?\n\nThe student will be able to login and take the test again.`)) {
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/admin/reset-student', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ roll })
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert(`Candidate ${roll} has been reset. They can now re-attempt the exam.`);
+          loadData();
+        } else {
+          alert('Error: ' + data.message);
+        }
+      } catch (err) {
+        alert('Server request failed.');
+      }
+    }
+
+    // Filter Tabs Click
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.filter;
+        renderTable();
+      });
+    });
+
+    // Search Input
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      searchQuery = e.target.value;
+      renderTable();
+    });
+
+    // Refresh Button
+    document.getElementById('btnRefresh').addEventListener('click', loadData);
+
+    // Clear All Attempts
+    document.getElementById('btnClearAll').addEventListener('click', async () => {
+      if (confirm('CAUTION: Are you sure you want to delete ALL completed exam submissions?\n\nThis will reset all 500 candidates to PENDING status.')) {
+        await fetch('/api/clear-completed-students', { method: 'POST' });
+        loadData();
+      }
+    });
+
+    // Export to CSV
+    document.getElementById('btnExportCSV').addEventListener('click', () => {
+      if (!allStudents.length) return;
+      let csv = 'Serial,Roll Number,Candidate Name,Password,Exam Status,Score,Total,Percentage,Eligibility,Submitted At\n';
+      allStudents.forEach(s => {
+        const row = [
+          s.serial,
+          `"${s.roll}"`,
+          `"${s.name}"`,
+          `"${s.password}"`,
+          s.attempted ? 'Submitted' : 'Pending',
+          s.attempted ? s.score : '',
+          s.total,
+          s.attempted ? s.percentage + '%' : '',
+          s.eligibility,
+          `"${s.completedAt || ''}"`
+        ];
+        csv += row.join(',') + '\n';
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `Educare_CBSE_Class10_Eligibility_${new Date().toISOString().slice(0,10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+
+    // -------------------------------------------------------------
+    // PORTAL SCHEDULE & AVAILABILITY CONTROLS
+    // -------------------------------------------------------------
+    let currentSchedule = {
+      portalOpen: true,
+      deadline: '2026-11-01T23:59:59+05:30',
+      deadlineFormatted: '01 Nov 2026, 11:59:59 PM IST',
+      closedMessage: ''
+    };
+    let countdownInterval = null;
+
+    function formatDateTimeLocal(date) {
+      const pad = (n) => String(n).padStart(2, '0');
+      const year = date.getFullYear();
+      const month = pad(date.getMonth() + 1);
+      const day = pad(date.getDate());
+      const hours = pad(date.getHours());
+      const minutes = pad(date.getMinutes());
+      return `${year}-${month}-${day}T${hours}:${minutes}`;
+    }
+
+    async function loadPortalSchedule() {
+      try {
+        const res = await fetch('/api/portal-schedule');
+        const data = await res.json();
+        if (data.success) {
+          currentSchedule = data;
+          renderPortalSchedule();
+        }
+      } catch (err) {
+        console.warn('Failed to load portal schedule from API:', err);
+      }
+    }
+
+    function renderPortalSchedule() {
+      const badge = document.getElementById('livePortalStatusBadge');
+      const badgeText = document.getElementById('livePortalStatusText');
+      const deadlineDisp = document.getElementById('displayDeadlineFormatted');
+      const subStatus = document.getElementById('displaySubStatus');
+      const picker = document.getElementById('portalDeadlinePicker');
+      const noticeInput = document.getElementById('portalNoticeInput');
+
+      deadlineDisp.textContent = currentSchedule.deadlineFormatted || '01 Nov 2026, 11:59:59 PM IST';
+      noticeInput.value = currentSchedule.closedMessage || '';
+
+      if (currentSchedule.deadline) {
+        try {
+          const d = new Date(currentSchedule.deadline);
+          if (!isNaN(d.getTime())) {
+            picker.value = formatDateTimeLocal(d);
+          }
+        } catch (e) {}
+      }
+
+      updateLiveCountdown();
+      if (countdownInterval) clearInterval(countdownInterval);
+      countdownInterval = setInterval(updateLiveCountdown, 1000);
+    }
+
+    function updateLiveCountdown() {
+      const badge = document.getElementById('livePortalStatusBadge');
+      const badgeText = document.getElementById('livePortalStatusText');
+      const cd = document.getElementById('displayCountdown');
+      const subStatus = document.getElementById('displaySubStatus');
+
+      const now = Date.now();
+      const deadlineMs = currentSchedule.deadline ? new Date(currentSchedule.deadline).getTime() : 0;
+      const isExpired = deadlineMs && now > deadlineMs;
+      const isClosed = currentSchedule.portalOpen === false;
+
+      if (isClosed) {
+        badge.className = 'status-badge-live closed';
+        badgeText.textContent = 'PORTAL CLOSED (ADMIN LOCKED)';
+        cd.className = 'info-countdown-display expired';
+        cd.innerHTML = '&#9888; Closed Manually';
+        subStatus.textContent = 'Portal is currently closed by Administrator. Candidates cannot login.';
+      } else if (isExpired) {
+        badge.className = 'status-badge-live closed';
+        badgeText.textContent = 'PORTAL EXPIRED';
+        cd.className = 'info-countdown-display expired';
+        cd.innerHTML = '&#9201; Test Window Expired';
+        subStatus.textContent = 'The deadline for this CBT exam has passed. Access is locked.';
+      } else {
+        badge.className = 'status-badge-live open';
+        badgeText.textContent = 'PORTAL ACTIVE & OPEN';
+        cd.className = 'info-countdown-display';
+
+        const diff = Math.max(0, deadlineMs - now);
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+        if (days > 0) {
+          cd.innerHTML = `${days}d ${hours}h ${mins}m ${secs}s`;
+        } else {
+          cd.innerHTML = `${hours}h ${mins}m ${secs}s`;
+        }
+        subStatus.textContent = 'Candidates can currently login, complete proctoring & submit exams.';
+      }
+    }
+
+    function showScheduleAlert(msg, isSuccess) {
+      const box = document.getElementById('scheduleAlert');
+      box.className = `schedule-alert-banner ${isSuccess ? 'success' : 'error'}`;
+      box.style.display = 'flex';
+      box.innerHTML = `${isSuccess ? '&#10004;' : '&#9888;'} ${msg}`;
+      setTimeout(() => {
+        box.style.display = 'none';
+      }, 5000);
+    }
+
+    async function sendScheduleUpdate(payload, successMsg) {
+      try {
+        const res = await fetch('/api/admin/portal-schedule', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success && data.schedule) {
+          currentSchedule = data.schedule;
+          renderPortalSchedule();
+          showScheduleAlert(successMsg || data.message, true);
+        } else {
+          showScheduleAlert(data.message || 'Error updating schedule', false);
+        }
+      } catch (err) {
+        showScheduleAlert('Network connection failed. Could not update schedule.', false);
+      }
+    }
+
+    // Quick Reopen Button
+    document.getElementById('btnQuickReopen').addEventListener('click', () => {
+      const now = new Date();
+      let targetDeadline = currentSchedule.deadline ? new Date(currentSchedule.deadline) : null;
+      
+      // If deadline has expired, extend to at least 24 hours from now or 1 Nov 2026
+      const defaultNov1 = new Date('2026-11-01T23:59:59+05:30');
+      if (!targetDeadline || targetDeadline.getTime() <= now.getTime()) {
+        if (now.getTime() < defaultNov1.getTime()) {
+          targetDeadline = defaultNov1;
+        } else {
+          targetDeadline = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+        }
+      }
+
+      sendScheduleUpdate({
+        portalOpen: true,
+        deadline: targetDeadline.toISOString(),
+        closedMessage: document.getElementById('portalNoticeInput').value
+      }, 'Portal successfully reopened! Candidates can now login.');
+    });
+
+    // Quick Close Button
+    document.getElementById('btnQuickClose').addEventListener('click', () => {
+      if (confirm('Are you sure you want to CLOSE the exam portal now?\n\nCandidates will be immediately locked out from taking the test.')) {
+        sendScheduleUpdate({
+          portalOpen: false
+        }, 'Exam Portal is now CLOSED. Candidate access disabled.');
+      }
+    });
+
+    // Preset Buttons
+    document.getElementById('btnPresetDefault').addEventListener('click', () => {
+      document.getElementById('portalDeadlinePicker').value = '2026-11-01T23:59';
+    });
+
+    document.getElementById('btnPresetPlus24h').addEventListener('click', () => {
+      const d = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      document.getElementById('portalDeadlinePicker').value = formatDateTimeLocal(d);
+    });
+
+    document.getElementById('btnPresetPlus3d').addEventListener('click', () => {
+      const d = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
+      document.getElementById('portalDeadlinePicker').value = formatDateTimeLocal(d);
+    });
+
+    document.getElementById('btnPresetPlus7d').addEventListener('click', () => {
+      const d = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+      document.getElementById('portalDeadlinePicker').value = formatDateTimeLocal(d);
+    });
+
+    document.getElementById('btnPresetPlus30d').addEventListener('click', () => {
+      const d = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      document.getElementById('portalDeadlinePicker').value = formatDateTimeLocal(d);
+    });
+
+    // Save Schedule Button
+    document.getElementById('btnSaveSchedule').addEventListener('click', () => {
+      const pickerVal = document.getElementById('portalDeadlinePicker').value;
+      if (!pickerVal) {
+        showScheduleAlert('Please select a valid Date and Time.', false);
+        return;
+      }
+      const chosenDate = new Date(pickerVal);
+      if (isNaN(chosenDate.getTime())) {
+        showScheduleAlert('Invalid Date format.', false);
+        return;
+      }
+
+      const notice = document.getElementById('portalNoticeInput').value;
+      sendScheduleUpdate({
+        portalOpen: true,
+        deadline: chosenDate.toISOString(),
+        closedMessage: notice
+      }, 'Schedule saved! New deadline applied: ' + chosenDate.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }));
+    });
+
+    // -------------------------------------------------------------
+    // STUDENT CREDENTIAL EDIT MODAL LOGIC (Roll & Password Locked)
+    // -------------------------------------------------------------
+    function openEditStudentModal(roll) {
+      const student = allStudents.find(s => s.roll === roll);
+      if (!student) {
+        alert('Student record not found.');
+        return;
+      }
+      document.getElementById('editOriginalRoll').value = student.roll;
+      document.getElementById('editStudentRoll').value = student.roll;
+      document.getElementById('editStudentPassword').value = student.password || '••••••••';
+      document.getElementById('editStudentName').value = student.name || '';
+      document.getElementById('editStudentClass').value = student.class || 'Class 10 CBSE';
+      document.getElementById('editStudentPhone').value = student.phone || '';
+
+      const alertBox = document.getElementById('editStudentAlert');
+      alertBox.style.display = 'none';
+
+      document.getElementById('editStudentModal').classList.add('active');
+    }
+
+    function closeEditStudentModal() {
+      document.getElementById('editStudentModal').classList.remove('active');
+    }
+
+    async function handleSaveStudentEdit(e) {
+      if (e) e.preventDefault();
+      const roll = document.getElementById('editOriginalRoll').value;
+      const name = document.getElementById('editStudentName').value.trim();
+      const studentClass = document.getElementById('editStudentClass').value.trim();
+      const phone = document.getElementById('editStudentPhone').value.trim();
+      const alertBox = document.getElementById('editStudentAlert');
+
+      if (!name) {
+        alertBox.style.display = 'block';
+        alertBox.style.color = '#DC2626';
+        alertBox.textContent = 'Please enter a valid student name.';
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/admin/update-student', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            roll,
+            name,
+            class: studentClass,
+            phone
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          alertBox.style.display = 'block';
+          alertBox.style.color = '#15803D';
+          alertBox.textContent = '✓ ' + (data.message || 'Student credentials updated successfully! Roll number and password remained strictly locked.');
+          setTimeout(() => {
+            closeEditStudentModal();
+            loadData();
+          }, 1000);
+        } else {
+          alertBox.style.display = 'block';
+          alertBox.style.color = '#DC2626';
+          alertBox.textContent = '⚠ ' + (data.message || 'Failed to update student details.');
+        }
+      } catch (err) {
+        alertBox.style.display = 'block';
+        alertBox.style.color = '#DC2626';
+        alertBox.textContent = '⚠ Network error while saving student credentials.';
+      }
+    }
+
+    // -------------------------------------------------------------
+    // PROCTORING MEDIA MODAL (COMPRESSED VIDEO & PHOTO SURVEILLANCE)
+    // -------------------------------------------------------------
+    function openProctorMediaModal(roll) {
+      const student = allStudents.find(s => s.roll === roll);
+      if (!student) return;
+
+      document.getElementById('proctorMediaTitle').innerHTML = `&#128249; Proctor Surveillance: ${student.name} (${student.roll})`;
+      document.getElementById('proctorMediaSubtitle').textContent = `Candidate #${student.serial} | Surveillance Media (Auto-purges daily at 1:00 AM IST)`;
+
+      const videoPlayer = document.getElementById('proctorVideoPlayer');
+      const videoInfo = document.getElementById('proctorVideoInfo');
+      const photoImg = document.getElementById('proctorCandidatePhoto');
+
+      if (student.videoUrl) {
+        videoPlayer.style.display = 'block';
+        videoPlayer.src = student.videoUrl;
+        videoPlayer.load();
+        videoInfo.innerHTML = `✓ Compressed proctoring video stream loaded from server: <a href="${student.videoUrl}" target="_blank" style="color: #2563EB;">Direct Link</a> (Scheduled for auto-purge at 01:00 AM IST)`;
+      } else {
+        videoPlayer.style.display = 'none';
+        videoPlayer.src = '';
+        videoInfo.innerHTML = `<span style="color: #64748B;">No video uploaded for this student yet. During active exam, webcam video is compressed to ~100 kbps and uploaded upon submission.</span>`;
+      }
+
+      if (student.photoUrl || student.capturedPhoto) {
+        photoImg.style.display = 'inline-block';
+        photoImg.src = student.photoUrl || student.capturedPhoto;
+      } else {
+        photoImg.style.display = 'none';
+      }
+
+      document.getElementById('proctorMediaModal').classList.add('active');
+    }
+
+    function closeProctorMediaModal() {
+      const videoPlayer = document.getElementById('proctorVideoPlayer');
+      if (videoPlayer) {
+        videoPlayer.pause();
+        videoPlayer.src = '';
+      }
+      document.getElementById('proctorMediaModal').classList.remove('active');
+    }
+
+    // -------------------------------------------------------------
+    // NCERT INTERNET SCRAPER LOGIC
+    // -------------------------------------------------------------
+    async function handleScrapeQuestions() {
+      const chapter = document.getElementById('selectChapterForScrape').value;
+      const btn = document.getElementById('btnScrapeQuestions');
+      const statusText = document.getElementById('scrapeStatusText');
+
+      btn.disabled = true;
+      btn.textContent = 'Scraping NCERT Internet...';
+      statusText.textContent = 'Connecting to educational sources and scraping 50 NCERT questions...';
+
+      try {
+        const res = await fetch('/api/admin/scrape-questions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chapter: parseInt(chapter) })
+        });
+        const data = await res.json();
+        if (data.success) {
+          statusText.innerHTML = `
+            <div style="background: #ECFDF5; border: 1.5px solid #10B981; border-radius: 8px; padding: 12px; margin-top: 10px;">
+              <div style="font-size: 13px; font-weight: 700; color: #065F46; margin-bottom: 4px;">
+                &#10004; Scrape Successful! 50 Fresh NCERT Questions Updated in Pool.
+              </div>
+              <div style="font-size: 12px; color: #047857; margin-bottom: 10px;">
+                Today's 25 Questions (5 Repeating + 20 Fresh) are ready in <strong>Designed PDF</strong> &amp; WhatsApp formats:
+              </div>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <a href="/question-paper?chapterId=${chapter}" target="_blank" class="btn-action" style="background: #2563EB; color: white; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 6px; font-size: 11.5px; font-weight: 700;">
+                  &#128424; View &amp; Print PDF Paper
+                </a>
+                <a href="/api/admin/download-questions-pdf?chapterId=${chapter}" class="btn-action" style="background: #DC2626; color: white; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 6px; font-size: 11.5px; font-weight: 700;">
+                  &#128196; Download .PDF File
+                </a>
+                <button type="button" class="btn-action" onclick="shareDailyQuestionsWhatsApp()" style="background: #25D366; color: white; border: none; font-size: 11.5px; font-weight: 700; padding: 6px 12px; border-radius: 6px;">
+                  &#128172; Send on WhatsApp (8448467381)
+                </button>
+              </div>
+            </div>
+          `;
+        } else {
+          statusText.innerHTML = `<span style="color: #DC2626;">⚠ ${data.message}</span>`;
+        }
+      } catch (err) {
+        statusText.innerHTML = `<span style="color: #DC2626;">⚠ Network failure connecting to scraper engine.</span>`;
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '&#127760; Scrape 50 Pool';
+      }
+    }
+
+    // -------------------------------------------------------------
+    // WHATSAPP DAILY QUESTIONS DISPATCH (+91 8448467381)
+    // -------------------------------------------------------------
+    async function shareDailyQuestionsWhatsApp() {
+      try {
+        const res = await fetch('/api/admin/whatsapp-daily-questions');
+        const data = await res.json();
+        if (data.success && data.whatsappUrl) {
+          window.open(data.whatsappUrl, '_blank');
+        } else {
+          alert('Could not generate WhatsApp questions: ' + (data.message || 'Unknown error'));
+        }
+      } catch (err) {
+        alert('Failed to connect to server for WhatsApp dispatch.');
+      }
+    }
+
+    async function downloadTodayQuestionsText() {
+      try {
+        const res = await fetch('/api/admin/whatsapp-daily-questions');
+        const data = await res.json();
+        if (data.success && data.text) {
+          const blob = new Blob([data.text], { type: 'text/plain;charset=utf-8;' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `CBSE_Class10_Daily_25_Questions_${new Date().toISOString().slice(0,10)}.txt`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        } else {
+          alert('Could not download questions text.');
+        }
+      } catch (err) {
+        alert('Network request failed.');
+      }
+    }
+
+    // -------------------------------------------------------------
+    // DAILY 1:00 AM PROCTORING MEDIA PURGE (MANUAL OVERRIDE)
+    // -------------------------------------------------------------
+    async function handleManualProctorPurge() {
+      if (!confirm('Are you sure you want to clean all stored proctoring videos and snapshots now?\n\n(Note: The server also auto-purges them automatically every day at 1:00 AM IST)')) {
+        return;
+      }
+      const statusText = document.getElementById('purgeStatusText');
+      statusText.textContent = 'Purging media files...';
+
+      try {
+        const res = await fetch('/api/admin/clean-proctor-media', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          statusText.innerHTML = `✓ <strong>Purge Complete:</strong> ${data.message} (${data.deletedFiles} files removed). Storage cleaned!`;
+          loadData();
+        } else {
+          statusText.innerHTML = `<span style="color:#DC2626;">⚠ ${data.message}</span>`;
+        }
+      } catch (err) {
+        statusText.innerHTML = `<span style="color:#DC2626;">⚠ Request failed.</span>`;
+      }
+    }
+
+    // -------------------------------------------------------------
+    // ENROLL NEW STUDENT MODAL & WHATSAPP CREDENTIAL DISPATCH
+    // -------------------------------------------------------------
+    function generateClientUnguessableCode(length = 3) {
+      const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+      let res = '';
+      for (let i = 0; i < length; i++) {
+        res += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return res;
+    }
+
+    function generateClientUnguessablePassword(length = 8) {
+      const uppers = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+      const lowers = 'abcdefghjkmnpqrstuvwxyz';
+      const digits = '23456789';
+      const symbols = '@#$&*';
+      const all = uppers + lowers + digits + symbols;
+      const pwd = [
+        uppers[Math.floor(Math.random() * uppers.length)],
+        lowers[Math.floor(Math.random() * lowers.length)],
+        digits[Math.floor(Math.random() * digits.length)],
+        symbols[Math.floor(Math.random() * symbols.length)]
+      ];
+      while (pwd.length < length) {
+        pwd.push(all[Math.floor(Math.random() * all.length)]);
+      }
+      return pwd.sort(() => Math.random() - 0.5).join('');
+    }
+
+    function regenerateAddStudentRollPass() {
+      const existingRolls = new Set(allStudents.map(s => s.roll));
+      let candidate = '';
+      do {
+        candidate = `26CBSEBRD${generateClientUnguessableCode(3)}`;
+      } while (existingRolls.has(candidate));
+      document.getElementById('addStudentRoll').value = candidate;
+      document.getElementById('addStudentPassword').value = 'Edu@26';
+    }
+
+    function openAddStudentModal() {
+      document.getElementById('addStudentName').value = '';
+      document.getElementById('addStudentPhone').value = '';
+      document.getElementById('addStudentClass').value = 'Class 10 CBSE';
+      const alertBox = document.getElementById('addStudentAlert');
+      if (alertBox) alertBox.style.display = 'none';
+
+      regenerateAddStudentRollPass();
+      document.getElementById('addStudentModal').classList.add('active');
+      setTimeout(() => {
+        const inp = document.getElementById('addStudentName');
+        if (inp) inp.focus();
+      }, 150);
+    }
+
+    function closeAddStudentModal() {
+      document.getElementById('addStudentModal').classList.remove('active');
+    }
+
+    let lastShareWaText = '';
+
+    async function handleSaveNewStudent(e) {
+      if (e) e.preventDefault();
+      const name = document.getElementById('addStudentName').value.trim();
+      const studentClass = document.getElementById('addStudentClass').value.trim();
+      const phone = document.getElementById('addStudentPhone').value.trim();
+      const roll = document.getElementById('addStudentRoll').value.trim();
+      const password = document.getElementById('addStudentPassword').value.trim();
+      const alertBox = document.getElementById('addStudentAlert');
+
+      if (!name) {
+        alertBox.style.display = 'block';
+        alertBox.style.color = '#DC2626';
+        alertBox.textContent = 'Please enter student full name.';
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/admin/add-student', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name,
+            class: studentClass,
+            phone,
+            roll,
+            password
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          closeAddStudentModal();
+          loadData(); // Sync live roster immediately
+
+          // Open WhatsApp sharing modal
+          if (data.student && data.whatsappUrl) {
+            openShareStudentWaModal(data.student, data.whatsappUrl, data.whatsappText);
+          } else {
+            alert(data.message || 'Student enrolled successfully!');
+          }
+        } else {
+          alertBox.style.display = 'block';
+          alertBox.style.color = '#DC2626';
+          alertBox.textContent = '⚠ ' + (data.message || 'Error enrolling student.');
+        }
+      } catch (err) {
+        alertBox.style.display = 'block';
+        alertBox.style.color = '#DC2626';
+        alertBox.textContent = '⚠ Network error while adding student.';
+      }
+    }
+
+    function openShareStudentWaModal(student, whatsappUrl, whatsappText) {
+      lastShareWaText = whatsappText || '';
+      const box = document.getElementById('shareWaDetailsBox');
+      box.innerHTML = `
+        <div style="font-weight: 700; font-size: 14px; margin-bottom: 6px; color: #064E3B;">${student.name}</div>
+        <div><strong>Roll Number:</strong> <code style="color: #1D4ED8; font-weight: 800;">${student.roll}</code></div>
+        <div><strong>Password:</strong> <code style="color: #D97706; font-weight: 800;">${student.password}</code></div>
+        <div><strong>Class:</strong> ${student.class || 'Class 10 CBSE'}</div>
+        <div><strong>Phone:</strong> ${student.phone || '<em style="color:#64748B;">Not specified</em>'}</div>
+        <div style="margin-top: 8px; font-size: 11.5px; color: #047857;">
+          ✓ Ready to send official CBT login link and exam instructions directly to student on WhatsApp!
+        </div>
+      `;
+      const btn = document.getElementById('btnOpenWhatsAppDirect');
+      btn.href = whatsappUrl || '#';
+      document.getElementById('shareStudentWaModal').classList.add('active');
+    }
+
+    function closeShareStudentWaModal() {
+      document.getElementById('shareStudentWaModal').classList.remove('active');
+    }
+
+    function copyWaTextToClipboard() {
+      if (!lastShareWaText) return;
+      navigator.clipboard.writeText(lastShareWaText).then(() => {
+        alert('Credentials message copied to clipboard! You can paste it into WhatsApp.');
+      }).catch(() => {
+        alert('Could not copy automatically. Please copy the text manually.');
+      });
+    }
+
+    async function shareStudentCredentialsWhatsApp(roll) {
+      try {
+        const res = await fetch(`/api/admin/whatsapp-student-credentials?roll=${encodeURIComponent(roll)}`);
+        const data = await res.json();
+        if (data.success && data.whatsappUrl) {
+          openShareStudentWaModal(data.student, data.whatsappUrl, data.whatsappText);
+        } else {
+          alert('Could not fetch student credentials: ' + (data.message || 'Unknown error'));
+        }
+      } catch (err) {
+        alert('Failed to connect to server.');
+      }
+    }
+
+    // Admin password visibility toggle
+    const btnTogglePwd = document.getElementById('btnToggleAdminPwd');
+    if (btnTogglePwd) {
+      btnTogglePwd.addEventListener('click', () => {
+        const pwdInput = document.getElementById('adminAuthPassword');
+        if (pwdInput) {
+          const isPwd = pwdInput.type === 'password';
+          pwdInput.type = isPwd ? 'text' : 'password';
+          btnTogglePwd.innerHTML = isPwd ? '&#128064;' : '&#128065;';
+        }
+      });
+    }
+
+    // Admin Logout / Lock Console button listener
+    const btnLogout = document.getElementById('btnAdminLogout');
+    if (btnLogout) {
+      btnLogout.addEventListener('click', handleAdminLogout);
+    }
+
+    // Initial Security Verification Gate Check
+    if (checkAdminAuth()) {
+      loadData();
+      loadPortalSchedule();
+      if (!syncIntervalId) {
+        syncIntervalId = setInterval(loadData, 3000);
+      }
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Educare Academy - CBSE Class 10th Science Question Paper (Daily Assessment)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0B2545;
+      --secondary: #134074;
+      --accent-gold: #D97706;
+      --accent-gold-light: #FEF3C7;
+      --text-dark: #0F172A;
+      --text-muted: #475569;
+      --bg-page: #F8FAFC;
+      --card-bg: #FFFFFF;
+      --border-color: #E2E8F0;
+      --correct-green: #15803D;
+      --correct-bg: #DCFCE7;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', 'Noto Sans Devanagari', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-page);
+      color: var(--text-dark);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Top Sticky Action Bar (Hidden in Print) */
+    .top-action-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: #0B2545;
+      color: #FFFFFF;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .brand-title-mini {
+      font-size: 15px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-badge {
+      background: #D97706;
+      color: #FFFFFF;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+    }
+
+    .action-btn-group {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-bar {
+      padding: 7px 14px;
+      font-size: 12.5px;
+      font-weight: 700;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+
+    .btn-print {
+      background: #2563EB;
+      color: #FFFFFF;
+    }
+    .btn-print:hover { background: #1D4ED8; transform: translateY(-1px); }
+
+    .btn-pdf {
+      background: #DC2626;
+      color: #FFFFFF;
+    }
+    .btn-pdf:hover { background: #B91C1C; transform: translateY(-1px); }
+
+    .btn-wa {
+      background: #25D366;
+      color: #FFFFFF;
+    }
+    .btn-wa:hover { background: #1EBE5D; transform: translateY(-1px); }
+
+    .btn-admin {
+      background: #334155;
+      color: #F8FAFC;
+    }
+    .btn-admin:hover { background: #475569; }
+
+    /* Main Container (A4 sheet appearance on screen) */
+    .paper-container {
+      max-width: 860px;
+      margin: 28px auto 60px auto;
+      background: #FFFFFF;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.08);
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Watermark */
+    .paper-container::before {
+      content: "EDUCARE ACADEMY";
+      position: absolute;
+      top: 45%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-35deg);
+      font-size: 72px;
+      font-weight: 900;
+      color: rgba(11, 37, 69, 0.03);
+      pointer-events: none;
+      white-space: nowrap;
+      z-index: 0;
+      letter-spacing: 6px;
+    }
+
+    /* Official CBSE Header */
+    .cbse-header {
+      background: linear-gradient(135deg, #0B2545 0%, #134074 100%);
+      color: #FFFFFF;
+      padding: 24px 30px;
+      text-align: center;
+      border-bottom: 4px solid #D97706;
+      position: relative;
+      z-index: 1;
+    }
+
+    .cbse-header h1 {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .cbse-header h2 {
+      font-size: 14px;
+      font-weight: 600;
+      color: #FEF08A;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .header-subtext {
+      font-size: 12px;
+      color: #E2E8F0;
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    /* Meta Table */
+    .meta-strip {
+      background: #F1F5F9;
+      border-bottom: 1.5px solid #CBD5E1;
+      padding: 12px 24px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      font-size: 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .meta-item strong {
+      color: var(--primary);
+      display: block;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .meta-item span {
+      color: var(--text-dark);
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    /* General Instructions */
+    .instructions-box {
+      margin: 20px 24px;
+      padding: 14px 18px;
+      background: #FFFBEB;
+      border: 1px solid #FDE68A;
+      border-radius: 8px;
+      font-size: 12px;
+      color: #92400E;
+      position: relative;
+      z-index: 1;
+    }
+
+    .instructions-box strong {
+      color: #78350F;
+      font-size: 13px;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .instructions-box ol {
+      margin-left: 20px;
+      line-height: 1.6;
+    }
+
+    /* Questions Content */
+    .questions-wrapper {
+      padding: 10px 24px 30px 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-bottom: 2px solid var(--primary);
+      padding-bottom: 6px;
+      margin: 24px 0 16px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .question-card {
+      background: #FFFFFF;
+      border: 1px solid var(--border-color);
+      border-left: 4px solid var(--secondary);
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+      page-break-inside: avoid;
+      break-inside: avoid;
+      transition: border-color 0.2s;
+    }
+
+    .question-card:hover {
+      border-color: #94A3B8;
+    }
+
+    .q-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+      gap: 12px;
+    }
+
+    .q-number {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .q-tag {
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    .tag-fresh {
+      background: #E0F2FE;
+      color: #0369A1;
+    }
+
+    .tag-repeat {
+      background: #F3E8FF;
+      color: #7E22CE;
+    }
+
+    .q-text-en {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 4px;
+      line-height: 1.5;
+    }
+
+    .q-text-hi {
+      font-size: 12.5px;
+      color: #64748B;
+      font-style: italic;
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .opt-box {
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 12px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .opt-key {
+      font-weight: 800;
+      color: var(--primary);
+      background: #E2E8F0;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+    }
+
+    .opt-txt {
+      color: var(--text-dark);
+      flex: 1;
+    }
+
+    .opt-txt-hi {
+      display: block;
+      color: #64748B;
+      font-size: 11px;
+    }
+
+    /* Answer Key & Solutions Section */
+    .answer-key-section {
+      background: #F8FAFC;
+      border: 1.5px dashed #CBD5E1;
+      border-radius: 10px;
+      padding: 20px;
+      margin-top: 30px;
+      page-break-before: always;
+      break-before: page;
+    }
+
+    .ans-matrix-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin: 14px 0 20px 0;
+    }
+
+    .ans-matrix-cell {
+      background: #FFFFFF;
+      border: 1px solid #CBD5E1;
+      border-radius: 6px;
+      padding: 6px 10px;
+      text-align: center;
+      font-size: 11.5px;
+      font-weight: 700;
+    }
+
+    .ans-matrix-cell span {
+      color: var(--correct-green);
+      font-size: 13px;
+    }
+
+    .explanation-item {
+      background: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      border-left: 3px solid var(--correct-green);
+      border-radius: 6px;
+      padding: 10px 14px;
+      margin-bottom: 10px;
+      font-size: 12px;
+    }
+
+    .explanation-item strong {
+      color: var(--primary);
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .explanation-item .ans-tag {
+      color: var(--correct-green);
+      font-weight: 700;
+    }
+
+    /* Print Specific Media Rules */
+    @media print {
+      body {
+        background: #FFFFFF !important;
+      }
+
+      .top-action-bar {
+        display: none !important;
+      }
+
+      .paper-container {
+        margin: 0 !important;
+        max-width: 100% !important;
+        border: none !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+      }
+
+      .cbse-header {
+        background: #0B2545 !important;
+        color: #FFFFFF !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .cbse-header h2 {
+        color: #FEF08A !important;
+      }
+
+      .tag-fresh, .tag-repeat, .opt-box, .instructions-box, .meta-strip, .ans-matrix-cell, .explanation-item {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .question-card {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        border: 1px solid #CBD5E1 !important;
+        border-left: 4px solid #134074 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .answer-key-section {
+        page-break-before: always !important;
+        break-before: page !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Sticky Navigation Bar -->
+  <header class="top-action-bar">
+    <div class="brand-title-mini">
+      <span>&#127891; EDUCARE ACADEMY</span>
+      <span class="brand-badge">CBSE CLASS X SCIENCE</span>
+    </div>
+    <div class="action-btn-group">
+      <button type="button" class="btn-bar btn-print" onclick="window.print()">
+        &#128424; Print / Save as PDF
+      </button>
+      <a href="/api/admin/download-questions-pdf" class="btn-bar btn-pdf" id="btnDownloadNativePdf">
+        &#128196; Download .PDF File
+      </a>
+      <a href="#" class="btn-bar btn-wa" id="btnShareWhatsApp">
+        &#128172; Share on WhatsApp
+      </a>
+      <a href="/admin.html" class="btn-bar btn-admin">
+        &#9881; Admin Panel
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Question Paper A4 Container -->
+  <main class="paper-container">
+
+    <!-- CBSE Official Header -->
+    <section class="cbse-header">
+      <h1>EDUCARE ACADEMY</h1>
+      <h2>CBSE CLASS 10TH SCIENCE • DAILY CHAPTER ASSESSMENT</h2>
+      <div class="header-subtext">
+        <span id="headerChapterName">Chapter 1: Chemical Reactions and Equations</span>
+        <span>&bull;</span>
+        <span id="headerExamDate">Date: 2026-11-05</span>
+        <span>&bull;</span>
+        <span>Teacher Helpline: +91 8448467381</span>
+      </div>
+    </section>
+
+    <!-- Meta Information Strip -->
+    <section class="meta-strip">
+      <div class="meta-item">
+        <strong>Subject &amp; Stream</strong>
+        <span>Science (086) • Class X</span>
+      </div>
+      <div class="meta-item">
+        <strong>Assessment Pattern</strong>
+        <span>25 MCQs (5 Repeating + 20 Fresh)</span>
+      </div>
+      <div class="meta-item">
+        <strong>Max Marks &amp; Time</strong>
+        <span>25 Marks • 25 Minutes</span>
+      </div>
+      <div class="meta-item">
+        <strong>Marking Scheme</strong>
+        <span>+1 Correct &bull; 0 Negative</span>
+      </div>
+    </section>
+
+    <!-- General Instructions -->
+    <section class="instructions-box">
+      <strong>&#128221; GENERAL INSTRUCTIONS FOR CANDIDATES:</strong>
+      <ol>
+        <li>This Question Paper contains <strong>25 Multiple Choice Questions (MCQs)</strong> based strictly on the NCERT syllabus.</li>
+        <li>Questions 1 to 25 are compulsory. Each question carries <strong>1 mark</strong>.</li>
+        <li>Each question has four options: <strong>(A), (B), (C), and (D)</strong>. Only one option is correct.</li>
+        <li>There is no negative marking for incorrect responses.</li>
+        <li>Candidate should submit all responses within the allotted <strong>25 minutes</strong>.</li>
+      </ol>
+    </section>
+
+    <!-- Questions Container -->
+    <section class="questions-wrapper">
+      <div class="section-title">
+        <span>SECTION A: MULTIPLE CHOICE QUESTIONS (Q1 &ndash; Q25)</span>
+        <span style="font-size: 11.5px; font-weight: 600; color: #64748B;">[25 &times; 1 = 25 Marks]</span>
+      </div>
+
+      <div id="questionsListContainer">
+        <!-- Injected via JavaScript -->
+        <div style="text-align: center; padding: 40px; color: #64748B;">
+          Loading Daily Question Paper...
+        </div>
+      </div>
+
+      <!-- Answer Key & Explanations Section -->
+      <div class="answer-key-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0B2545; padding-bottom: 6px; margin-bottom: 12px;">
+          <h3 style="font-size: 14px; font-weight: 800; color: #0B2545; text-transform: uppercase;">
+            &#127919; Official Answer Key &amp; Teacher Solution Matrix
+          </h3>
+          <span style="font-size: 11px; font-weight: 700; color: #15803D; background: #DCFCE7; padding: 2px 8px; border-radius: 4px;">
+            Confidential &bull; Examination Control Desk
+          </span>
+        </div>
+
+        <p style="font-size: 11.5px; color: #64748B; margin-bottom: 8px;">
+          Quick Reference Grid for all 25 Questions:
+        </p>
+
+        <!-- 5x5 Matrix -->
+        <div class="ans-matrix-grid" id="ansMatrixGrid"></div>
+
+        <h4 style="font-size: 13px; font-weight: 700; color: #0B2545; margin: 20px 0 10px 0;">
+          Detailed Step-by-Step NCERT Explanations:
+        </h4>
+
+        <div id="explanationsListContainer"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    (async function initQuestionPaper() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const chapterId = urlParams.get('chapterId') || '';
+      const autoPrint = urlParams.get('print') === 'true';
+
+      const queryStr = chapterId ? `?chapterId=${chapterId}` : '';
+
+      try {
+        let res = await fetch(`/api/question-paper-data${queryStr}`);
+        if (!res.ok) {
+          res = await fetch(`/api/admin/whatsapp-daily-questions${queryStr}`);
+        }
+        const data = await res.json();
+
+        if (!data.success || !data.questions) {
+          document.getElementById('questionsListContainer').innerHTML = `
+            <div style="text-align: center; padding: 40px; color: #DC2626; font-weight: 700;">
+              Unable to load today's questions (${data.message || 'Error'}).<br><br>
+              <button onclick="location.reload()" style="padding: 8px 18px; background: #0B2545; color: white; border: none; border-radius: 6px; font-weight: 700; cursor: pointer;">
+                &#128260; Retry Loading
+              </button>
+            </div>
+          `;
+          return;
+        }
+
+        // Header info
+        const chName = `Chapter ${data.chapter.id}: ${data.chapter.name} (${data.chapter.hindi || ''})`;
+        document.getElementById('headerChapterName').textContent = chName;
+        document.getElementById('headerExamDate').textContent = `Date: ${data.date}`;
+
+        // Update PDF and WhatsApp buttons
+        const btnDownloadNativePdf = document.getElementById('btnDownloadNativePdf');
+        if (btnDownloadNativePdf) {
+          btnDownloadNativePdf.href = `/api/admin/download-questions-pdf${queryStr}`;
+        }
+
+        const btnShareWhatsApp = document.getElementById('btnShareWhatsApp');
+        if (btnShareWhatsApp && data.whatsappUrl) {
+          btnShareWhatsApp.href = data.whatsappUrl;
+          btnShareWhatsApp.target = '_blank';
+        }
+
+        // Render Questions
+        const qContainer = document.getElementById('questionsListContainer');
+        qContainer.innerHTML = '';
+
+        const matrixGrid = document.getElementById('ansMatrixGrid');
+        matrixGrid.innerHTML = '';
+
+        const expContainer = document.getElementById('explanationsListContainer');
+        expContainer.innerHTML = '';
+
+        const keys = ['A', 'B', 'C', 'D'];
+        const repeatedSet = new Set(data.repeatedIds || []);
+
+        data.questions.forEach((q, idx) => {
+          const isRepeated = repeatedSet.has(q.id);
+          const tagClass = isRepeated ? 'tag-repeat' : 'tag-fresh';
+          const tagText = isRepeated ? '🔁 REPEAT FROM YESTERDAY' : '✨ FRESH QUESTION';
+
+          // 1. Question Card
+          const card = document.createElement('div');
+          card.className = 'question-card';
+
+          let optionsHtml = '';
+          if (Array.isArray(q.options)) {
+            optionsHtml = q.options.map((opt, oIdx) => {
+              const letter = keys[oIdx] || 'A';
+              const optEn = (typeof opt === 'object' && opt !== null) ? (opt.text || '') : String(opt || '');
+              const optHi = (typeof opt === 'object' && opt !== null && opt.hindi && opt.hindi !== optEn) ? opt.hindi : '';
+              return `
+                <div class="opt-box">
+                  <span class="opt-key">${letter}</span>
+                  <div class="opt-txt">
+                    <span>${optEn}</span>
+                    ${optHi ? `<span class="opt-txt-hi">${optHi}</span>` : ''}
+                  </div>
+                </div>
+              `;
+            }).join('');
+          }
+
+          card.innerHTML = `
+            <div class="q-head">
+              <span class="q-number">Question ${idx + 1} of 25</span>
+              <span class="q-tag ${tagClass}">${tagText}</span>
+            </div>
+            <div class="q-text-en">${idx + 1}. ${q.text || q.question || ''}</div>
+            ${q.textHindi ? `<div class="q-text-hi">${q.textHindi}</div>` : ''}
+            <div class="options-grid">${optionsHtml}</div>
+          `;
+          qContainer.appendChild(card);
+
+          // 2. Answer Matrix Cell
+          const cAns = (q.correctAnswer !== undefined && q.correctAnswer !== null) ? q.correctAnswer : 0;
+          const ansLetter = (typeof cAns === 'number') ? keys[cAns] : String(cAns);
+          const cell = document.createElement('div');
+          cell.className = 'ans-matrix-cell';
+          cell.innerHTML = `Q${idx + 1}: <span>(${ansLetter})</span>`;
+          matrixGrid.appendChild(cell);
+
+          // 3. Explanation Card
+          const expCard = document.createElement('div');
+          expCard.className = 'explanation-item';
+          const optObj = Array.isArray(q.options) && q.options[cAns];
+          const optText = (typeof optObj === 'object' && optObj !== null) ? (optObj.text || '') : String(optObj || '');
+
+          expCard.innerHTML = `
+            <strong>Q${idx + 1}. <span class="ans-tag">Correct Option (${ansLetter}) - ${optText}</span></strong>
+            ${q.explanation ? `<p style="color: #475569; margin-top: 4px; line-height: 1.5;">${q.explanation}</p>` : ''}
+          `;
+          expContainer.appendChild(expCard);
+        });
+
+        // Trigger print automatically if ?print=true is present
+        if (autoPrint) {
+          setTimeout(() => { window.print(); }, 600);
+        }
+
+      } catch (err) {
+        console.error('Error loading question paper:', err);
+      }
+    })();
+  </script>
+</body>
+</html>
