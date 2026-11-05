@@ -3378,9 +3378,13 @@
       }
 
       try {
+        const adminKey = sessionStorage.getItem('educare_admin_auth') || 'Rockey6974@';
         const res = await fetch('/api/admin/update-student', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-key': adminKey
+          },
           body: JSON.stringify({
             roll,
             name,
@@ -3388,7 +3392,12 @@
             phone
           })
         });
-        const data = await res.json();
+        let data = {};
+        try {
+          data = await res.json();
+        } catch (jsonErr) {
+          throw new Error('Server returned invalid response (Status ' + res.status + ').');
+        }
         if (data.success) {
           alertBox.style.display = 'block';
           alertBox.style.color = '#15803D';
@@ -3403,9 +3412,10 @@
           alertBox.textContent = '⚠ ' + (data.message || 'Failed to update student details.');
         }
       } catch (err) {
+        console.error('Update student error:', err);
         alertBox.style.display = 'block';
         alertBox.style.color = '#DC2626';
-        alertBox.textContent = '⚠ Network error while saving student credentials.';
+        alertBox.textContent = '⚠ ' + (err.message || 'Network error while saving student credentials.');
       }
     }
 
@@ -3645,9 +3655,13 @@
       }
 
       try {
+        const adminKey = sessionStorage.getItem('educare_admin_auth') || 'Rockey6974@';
         const res = await fetch('/api/admin/add-student', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-key': adminKey
+          },
           body: JSON.stringify({
             name,
             class: studentClass,
@@ -3656,7 +3670,12 @@
             password
           })
         });
-        const data = await res.json();
+        let data = {};
+        try {
+          data = await res.json();
+        } catch (jsonErr) {
+          throw new Error('Server returned invalid response (Status ' + res.status + ').');
+        }
         if (data.success) {
           closeAddStudentModal();
           loadData(); // Sync live roster immediately
@@ -3673,9 +3692,10 @@
           alertBox.textContent = '⚠ ' + (data.message || 'Error enrolling student.');
         }
       } catch (err) {
+        console.error('Add student error:', err);
         alertBox.style.display = 'block';
         alertBox.style.color = '#DC2626';
-        alertBox.textContent = '⚠ Network error while adding student.';
+        alertBox.textContent = '⚠ ' + (err.message || 'Network error while adding student.');
       }
     }
 

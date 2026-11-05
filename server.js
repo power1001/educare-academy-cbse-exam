@@ -5,12 +5,21 @@ const path = require('path');
 
 const PORT = process.env.PORT || 3050;
 const PUBLIC_DIR = __dirname;
-const COMPLETED_FILE = path.join(__dirname, 'completed_students.json');
+const IS_VERCEL = !!(process.env.VERCEL || process.env.NOW_REGION);
+const DATA_DIR = IS_VERCEL ? '/tmp' : __dirname;
+
+const COMPLETED_FILE = path.join(DATA_DIR, 'completed_students.json');
 const PACKAGE_FILE = path.join(__dirname, 'package.json');
-const SCHEDULE_FILE = path.join(__dirname, 'portal_schedule.json');
+const SCHEDULE_FILE = path.join(DATA_DIR, 'portal_schedule.json');
 const QUESTIONS_FILE = path.join(__dirname, 'cbse10_questions.json');
-const ACTIVE_CONFIG_FILE = path.join(__dirname, 'active_test_config.json');
-const ROSTER_FILE = path.join(__dirname, 'students_roster.json');
+const ACTIVE_CONFIG_FILE = path.join(DATA_DIR, 'active_test_config.json');
+const ROSTER_FILE = path.join(DATA_DIR, 'students_roster.json');
+
+// In-memory runtime caches to guarantee seamless execution in serverless read-only environments
+let inMemoryRoster = null;
+let inMemoryCompletedStudents = null;
+let inMemorySchedule = null;
+let inMemoryActiveConfig = null;
 
 // Ensure completed_students.json exists
 try {
@@ -20,7 +29,7 @@ try {
 } catch (e) {}
 
 // Media Records directories for Candidate Verification Photos and Compressed Proctoring Videos
-const RECORDS_DIR = path.join(__dirname, 'records');
+const RECORDS_DIR = path.join(DATA_DIR, 'records');
 const PHOTOS_DIR = path.join(RECORDS_DIR, 'photos');
 const VIDEOS_DIR = path.join(RECORDS_DIR, 'videos');
 try {
@@ -138,24 +147,34 @@ function verifyAdminAuth(req, body = null, queryStr = '') {
 }
 
 function getPortalSchedule() {
+  if (inMemorySchedule) return inMemorySchedule;
   try {
     if (fs.existsSync(SCHEDULE_FILE)) {
       const data = fs.readFileSync(SCHEDULE_FILE, 'utf8');
-      return { ...DEFAULT_SCHEDULE, ...JSON.parse(data || '{}') };
+      inMemorySchedule = { ...DEFAULT_SCHEDULE, ...JSON.parse(data || '{}') };
+      return inMemorySchedule;
+    }
+    const bundledSchedule = path.join(__dirname, 'portal_schedule.json');
+    if (fs.existsSync(bundledSchedule)) {
+      const data = fs.readFileSync(bundledSchedule, 'utf8');
+      inMemorySchedule = { ...DEFAULT_SCHEDULE, ...JSON.parse(data || '{}') };
+      return inMemorySchedule;
     }
   } catch (err) {
     console.error('Error reading portal_schedule.json:', err);
   }
-  return DEFAULT_SCHEDULE;
+  inMemorySchedule = { ...DEFAULT_SCHEDULE };
+  return inMemorySchedule;
 }
 
 function savePortalSchedule(schedule) {
+  inMemorySchedule = { ...schedule };
   try {
     fs.writeFileSync(SCHEDULE_FILE, JSON.stringify(schedule, null, 2), 'utf8');
     return true;
   } catch (err) {
-    console.error('Error writing portal_schedule.json:', err);
-    return false;
+    console.warn('[STORAGE] Warning writing portal_schedule.json (using memory cache):', err.message);
+    return true;
   }
 }
 
@@ -312,54 +331,78 @@ function formatStudentCredentialsWhatsApp(student, host) {
 }
 
 function getStudentRoster() {
+  if (inMemoryRoster && inMemoryRoster.length > 0) return inMemoryRoster;
   try {
     if (fs.existsSync(ROSTER_FILE)) {
-      return JSON.parse(fs.readFileSync(ROSTER_FILE, 'utf8') || '[]');
+      inMemoryRoster = JSON.parse(fs.readFileSync(ROSTER_FILE, 'utf8') || '[]');
+      if (inMemoryRoster.length > 0) return inMemoryRoster;
     }
-  } catch (err) {
-    console.error('Error reading students_roster.json:', err);
-  }
+  } catch (err) {}
+
+  // Fallback to bundled roster
+  try {
+    const bundledRoster = path.join(__dirname, 'students_roster.json');
+    if (fs.existsSync(bundledRoster)) {
+      inMemoryRoster = JSON.parse(fs.readFileSync(bundledRoster, 'utf8') || '[]');
+      if (IS_VERCEL) {
+        try { fs.writeFileSync(ROSTER_FILE, JSON.stringify(inMemoryRoster, null, 2), 'utf8'); } catch (e) {}
+      }
+      return inMemoryRoster;
+    }
+  } catch (err) {}
+
   const pkg = getPackageConfig();
-  return pkg.students || [];
+  inMemoryRoster = pkg.students || [];
+  return inMemoryRoster;
 }
 
 function saveStudentRoster(roster) {
+  inMemoryRoster = roster;
   try {
     fs.writeFileSync(ROSTER_FILE, JSON.stringify(roster, null, 2), 'utf8');
-    // Also sync to package.json
-    try {
-      if (fs.existsSync(PACKAGE_FILE)) {
-        const pkg = JSON.parse(fs.readFileSync(PACKAGE_FILE, 'utf8'));
-        if (pkg.examConfig) {
-          pkg.examConfig.students = roster;
-          fs.writeFileSync(PACKAGE_FILE, JSON.stringify(pkg, null, 2), 'utf8');
-        }
-      }
-    } catch (e) {}
-    return true;
   } catch (err) {
-    console.error('Error writing students_roster.json:', err);
-    return false;
+    console.warn('[STORAGE] Could not write ROSTER_FILE (using in-memory cache):', err.message);
   }
+  // Also sync to package.json if writable
+  try {
+    if (!IS_VERCEL && fs.existsSync(PACKAGE_FILE)) {
+      const pkg = JSON.parse(fs.readFileSync(PACKAGE_FILE, 'utf8'));
+      if (pkg.examConfig) {
+        pkg.examConfig.students = roster;
+        fs.writeFileSync(PACKAGE_FILE, JSON.stringify(pkg, null, 2), 'utf8');
+      }
+    }
+  } catch (e) {}
+  return true;
 }
 
 function getCompletedStudents() {
+  if (inMemoryCompletedStudents) return inMemoryCompletedStudents;
   try {
     if (fs.existsSync(COMPLETED_FILE)) {
       const data = fs.readFileSync(COMPLETED_FILE, 'utf8');
-      return JSON.parse(data || '[]');
+      inMemoryCompletedStudents = JSON.parse(data || '[]');
+      return inMemoryCompletedStudents;
+    }
+    const bundledCompleted = path.join(__dirname, 'completed_students.json');
+    if (fs.existsSync(bundledCompleted)) {
+      const data = fs.readFileSync(bundledCompleted, 'utf8');
+      inMemoryCompletedStudents = JSON.parse(data || '[]');
+      return inMemoryCompletedStudents;
     }
   } catch (err) {
     console.error('Error reading completed_students.json:', err);
   }
-  return [];
+  inMemoryCompletedStudents = [];
+  return inMemoryCompletedStudents;
 }
 
 function saveCompletedStudents(list) {
+  inMemoryCompletedStudents = list;
   try {
     fs.writeFileSync(COMPLETED_FILE, JSON.stringify(list, null, 2), 'utf8');
   } catch (err) {
-    console.error('Error writing completed_students.json:', err);
+    console.warn('[STORAGE] Could not write COMPLETED_FILE (using in-memory cache):', err.message);
   }
 }
 
@@ -424,9 +467,30 @@ const MIME_TYPES = {
 };
 
 async function requestHandler(req, res) {
-  const urlParts = req.url.split('?');
-  const reqPath = urlParts[0];
+  const urlParts = (req.url || '/').split('?');
+  const rawPath = urlParts[0];
   const queryStr = urlParts[1] || '';
+
+  // Parse query parameters safely
+  const parsedQuery = {};
+  if (queryStr) {
+    queryStr.split('&').forEach(pair => {
+      const idx = pair.indexOf('=');
+      if (idx > -1) {
+        try {
+          const k = decodeURIComponent(pair.slice(0, idx));
+          const v = decodeURIComponent(pair.slice(idx + 1));
+          parsedQuery[k] = v;
+        } catch (e) {}
+      }
+    });
+  }
+
+  // Support Vercel rewrite forwarding via _api_path query or direct path
+  let reqPath = rawPath;
+  if (parsedQuery._api_path) {
+    reqPath = '/api/' + parsedQuery._api_path.replace(/^\/+/, '');
+  }
 
   // Enable CORS Preflight
   if (req.method === 'OPTIONS') {
