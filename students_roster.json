@@ -10,16 +10,16 @@
   },
   {
     "serial": 2,
-    "name": "Shivam Kumar Singh",
+    "name": "Irfan Khan",
     "roll": "26CBSEBRDGPF",
     "password": "Edu@26",
     "class": "Class 10 CBSE",
     "status": "ACTIVE",
-    "phone": "9876543210"
+    "phone": ""
   },
   {
     "serial": 3,
-    "name": "Aditya Bose",
+    "name": "Krishna Aggarwal",
     "roll": "26CBSEBRD9LN",
     "password": "Edu@26",
     "class": "Class 10 CBSE",
@@ -27,7 +27,7 @@
   },
   {
     "serial": 4,
-    "name": "Ishaan Jha",
+    "name": "Ansh kumar",
     "roll": "26CBSEBRDHP8",
     "password": "Edu@26",
     "class": "Class 10 CBSE",
@@ -35,7 +35,7 @@
   },
   {
     "serial": 5,
-    "name": "Priya Malhotra",
+    "name": "Shanki sharma",
     "roll": "26CBSEBRDN3R",
     "password": "Edu@26",
     "class": "Class 10 CBSE",
@@ -43,7 +43,7 @@
   },
   {
     "serial": 6,
-    "name": "Vishal Sinha",
+    "name": "Naveen Tiwari",
     "roll": "26CBSEBRDW8A",
     "password": "Edu@26",
     "class": "Class 10 CBSE",
@@ -51,7 +51,7 @@
   },
   {
     "serial": 7,
-    "name": "Ansh Sahni",
+    "name": "Arman",
     "roll": "26CBSEBRDNSN",
     "password": "Edu@26",
     "class": "Class 10 CBSE",
@@ -59,7 +59,7 @@
   },
   {
     "serial": 8,
-    "name": "Muskan Soni",
+    "name": "Saransh Battenwal",
     "roll": "26CBSEBRDQ73",
     "password": "Edu@26",
     "class": "Class 10 CBSE",
@@ -67,7 +67,7 @@
   },
   {
     "serial": 9,
-    "name": "Sameer Kumar",
+    "name": "Gaurang Tiwari",
     "roll": "26CBSEBRDED3",
     "password": "Edu@26",
     "class": "Class 10 CBSE",
@@ -75,7 +75,7 @@
   },
   {
     "serial": 10,
-    "name": "Aditi Chatterjee",
+    "name": "Sushil",
     "roll": "26CBSEBRD5FK",
     "password": "Edu@26",
     "class": "Class 10 CBSE",

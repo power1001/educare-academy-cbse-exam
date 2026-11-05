@@ -7,15 +7,15 @@
 | Serial | Student Name | Roll Number | Password | Class | Phone | Status |
 |:---:|:---|:---:|:---:|:---:|:---:|:---:|
 | 1 | Abhinav Singh | `26CBSEBRDD2A` | `Edu@26` | Class 10 CBSE | 9953819830 | ACTIVE |
-| 2 | Shivam Kumar Singh | `26CBSEBRDGPF` | `Edu@26` | Class 10 CBSE | 9876543210 | ACTIVE |
-| 3 | Aditya Bose | `26CBSEBRD9LN` | `Edu@26` | Class 10 CBSE | - | ACTIVE |
-| 4 | Ishaan Jha | `26CBSEBRDHP8` | `Edu@26` | Class 10 CBSE | - | ACTIVE |
-| 5 | Priya Malhotra | `26CBSEBRDN3R` | `Edu@26` | Class 10 CBSE | - | ACTIVE |
-| 6 | Vishal Sinha | `26CBSEBRDW8A` | `Edu@26` | Class 10 CBSE | - | ACTIVE |
-| 7 | Ansh Sahni | `26CBSEBRDNSN` | `Edu@26` | Class 10 CBSE | - | ACTIVE |
-| 8 | Muskan Soni | `26CBSEBRDQ73` | `Edu@26` | Class 10 CBSE | - | ACTIVE |
-| 9 | Sameer Kumar | `26CBSEBRDED3` | `Edu@26` | Class 10 CBSE | - | ACTIVE |
-| 10 | Aditi Chatterjee | `26CBSEBRD5FK` | `Edu@26` | Class 10 CBSE | - | ACTIVE |
+| 2 | Irfan Khan | `26CBSEBRDGPF` | `Edu@26` | Class 10 CBSE | - | ACTIVE |
+| 3 | Krishna Aggarwal | `26CBSEBRD9LN` | `Edu@26` | Class 10 CBSE | - | ACTIVE |
+| 4 | Ansh kumar | `26CBSEBRDHP8` | `Edu@26` | Class 10 CBSE | - | ACTIVE |
+| 5 | Shanki sharma | `26CBSEBRDN3R` | `Edu@26` | Class 10 CBSE | - | ACTIVE |
+| 6 | Naveen Tiwari | `26CBSEBRDW8A` | `Edu@26` | Class 10 CBSE | - | ACTIVE |
+| 7 | Arman | `26CBSEBRDNSN` | `Edu@26` | Class 10 CBSE | - | ACTIVE |
+| 8 | Saransh Battenwal | `26CBSEBRDQ73` | `Edu@26` | Class 10 CBSE | - | ACTIVE |
+| 9 | Gaurang Tiwari | `26CBSEBRDED3` | `Edu@26` | Class 10 CBSE | - | ACTIVE |
+| 10 | Sushil | `26CBSEBRD5FK` | `Edu@26` | Class 10 CBSE | - | ACTIVE |
 | 11 | Harsh Tiwari | `26CBSEBRDSSM` | `Edu@26` | Class 10 CBSE | - | ACTIVE |
 | 12 | Prashant Mehta | `26CBSEBRD7NF` | `Edu@26` | Class 10 CBSE | - | ACTIVE |
 | 13 | Vikas Chauhan | `26CBSEBRDDCF` | `Edu@26` | Class 10 CBSE | - | ACTIVE |
