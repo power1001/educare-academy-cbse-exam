@@ -363,16 +363,44 @@ function saveStudentRoster(roster) {
   } catch (err) {
     console.warn('[STORAGE] Could not write ROSTER_FILE (using in-memory cache):', err.message);
   }
-  // Also sync to package.json if writable
-  try {
-    if (!IS_VERCEL && fs.existsSync(PACKAGE_FILE)) {
-      const pkg = JSON.parse(fs.readFileSync(PACKAGE_FILE, 'utf8'));
-      if (pkg.examConfig) {
-        pkg.examConfig.students = roster;
-        fs.writeFileSync(PACKAGE_FILE, JSON.stringify(pkg, null, 2), 'utf8');
+
+  // When running locally in project directory, sync all credentials files directly on disk
+  if (!IS_VERCEL) {
+    try {
+      // 1. Sync package.json
+      if (fs.existsSync(PACKAGE_FILE)) {
+        const pkg = JSON.parse(fs.readFileSync(PACKAGE_FILE, 'utf8'));
+        if (pkg.examConfig) {
+          pkg.examConfig.students = roster;
+          fs.writeFileSync(PACKAGE_FILE, JSON.stringify(pkg, null, 2), 'utf8');
+        }
       }
+
+      // 2. Sync STUDENT_CREDENTIALS_LIST.csv
+      const csvPath = path.join(__dirname, 'STUDENT_CREDENTIALS_LIST.csv');
+      let csv = 'Serial,Name,Roll Number,Password,Class,Phone,Status\n';
+      roster.forEach(s => {
+        csv += `${s.serial},"${s.name}",${s.roll},${s.password || 'Edu@26'},${s.class || 'Class 10 CBSE'},${s.phone || ''},${s.status || 'ACTIVE'}\n`;
+      });
+      fs.writeFileSync(csvPath, csv, 'utf8');
+
+      // 3. Sync STUDENT_CREDENTIALS_LIST.md
+      const mdPath = path.join(__dirname, 'STUDENT_CREDENTIALS_LIST.md');
+      let md = `# EDUCARE ACADEMY - CBSE CLASS 10TH OFFICIAL STUDENT CREDENTIALS\n\n`;
+      md += `> **Total Registered Students:** ${roster.length} Students  \n`;
+      md += `> **Format:** Roll Number: \`26CBSEBRD---\` | Universal Password: \`Edu@26\`  \n`;
+      md += `> **Teacher Helpline & WhatsApp:** +91 8448467381  \n\n`;
+      md += `| Serial | Student Name | Roll Number | Password | Class | Phone | Status |\n`;
+      md += `|:---:|:---|:---:|:---:|:---:|:---:|:---:|\n`;
+      roster.forEach(s => {
+        md += `| ${s.serial} | ${s.name} | \`${s.roll}\` | \`${s.password || 'Edu@26'}\` | ${s.class || 'Class 10 CBSE'} | ${s.phone || '-'} | ${s.status || 'ACTIVE'} |\n`;
+      });
+      fs.writeFileSync(mdPath, md, 'utf8');
+      console.log(`[STORAGE SYNC] All 4 roster files updated directly in project folder (JSON, PKG, CSV, MD).`);
+    } catch (e) {
+      console.error('[STORAGE SYNC] Error syncing reports to folder:', e.message);
     }
-  } catch (e) {}
+  }
   return true;
 }
 
