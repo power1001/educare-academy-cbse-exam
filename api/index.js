@@ -1,2 +1,2 @@
-// Vercel Entrypoint for /api
-module.exports = require('./handler.js');
+// Vercel Serverless Entrypoint
+module.exports = require('../server.js');

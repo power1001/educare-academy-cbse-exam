@@ -13,17 +13,21 @@ const ACTIVE_CONFIG_FILE = path.join(__dirname, 'active_test_config.json');
 const ROSTER_FILE = path.join(__dirname, 'students_roster.json');
 
 // Ensure completed_students.json exists
-if (!fs.existsSync(COMPLETED_FILE)) {
-  fs.writeFileSync(COMPLETED_FILE, JSON.stringify([], null, 2), 'utf8');
-}
+try {
+  if (!fs.existsSync(COMPLETED_FILE)) {
+    fs.writeFileSync(COMPLETED_FILE, JSON.stringify([], null, 2), 'utf8');
+  }
+} catch (e) {}
 
 // Media Records directories for Candidate Verification Photos and Compressed Proctoring Videos
 const RECORDS_DIR = path.join(__dirname, 'records');
 const PHOTOS_DIR = path.join(RECORDS_DIR, 'photos');
 const VIDEOS_DIR = path.join(RECORDS_DIR, 'videos');
-if (!fs.existsSync(RECORDS_DIR)) fs.mkdirSync(RECORDS_DIR, { recursive: true });
-if (!fs.existsSync(PHOTOS_DIR)) fs.mkdirSync(PHOTOS_DIR, { recursive: true });
-if (!fs.existsSync(VIDEOS_DIR)) fs.mkdirSync(VIDEOS_DIR, { recursive: true });
+try {
+  if (!fs.existsSync(RECORDS_DIR)) fs.mkdirSync(RECORDS_DIR, { recursive: true });
+  if (!fs.existsSync(PHOTOS_DIR)) fs.mkdirSync(PHOTOS_DIR, { recursive: true });
+  if (!fs.existsSync(VIDEOS_DIR)) fs.mkdirSync(VIDEOS_DIR, { recursive: true });
+} catch (e) {}
 
 // Optional Oracle Cloud Database module
 let oracleDb = null;
@@ -417,7 +421,7 @@ const MIME_TYPES = {
   '.ogg': 'video/ogg'
 };
 
-const server = http.createServer(async (req, res) => {
+async function requestHandler(req, res) {
   const urlParts = req.url.split('?');
   const reqPath = urlParts[0];
   const queryStr = urlParts[1] || '';
@@ -1899,7 +1903,9 @@ const server = http.createServer(async (req, res) => {
     const readStream = fs.createReadStream(filePath);
     readStream.pipe(res);
   });
-});
+}
+
+const server = http.createServer(requestHandler);
 
 let currentPort = PORT;
 
@@ -1926,4 +1932,9 @@ server.on('error', (err) => {
   }
 });
 
-startServer(PORT);
+// Run local HTTP server if executed directly via node CLI
+if (require.main === module) {
+  startServer(PORT);
+}
+
+module.exports = requestHandler;
