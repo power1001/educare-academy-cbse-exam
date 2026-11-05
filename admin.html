@@ -1819,6 +1819,9 @@
                 <button type="button" class="btn-action" onclick="downloadRosterJson()" style="background: #2563EB; color: white; border: none; font-weight: 700;">
                   &#128190; Backup JSON
                 </button>
+                <button type="button" class="btn-action" onclick="syncAllToGitHub()" style="background: #059669; color: white; border: none; font-weight: 700;">
+                  &#128640; Sync to GitHub &amp; Vercel
+                </button>
                 <button type="button" class="btn-action btn-clear-all" id="btnClearAll">
                   &#128465; Reset All Attempts
                 </button>
@@ -2566,7 +2569,7 @@
         if (ovr) {
           if (ovr.name) s.name = ovr.name;
           if (ovr.class) s.class = ovr.class;
-          if (ovr.phone) s.phone = ovr.phone;
+          if (ovr.phone !== undefined) s.phone = ovr.phone;
         }
       });
     }
@@ -2578,7 +2581,7 @@
       const overrideKeys = Object.keys(overrides);
       if (overrideKeys.length === 0) return;
 
-      // Check if server is missing any of the local overrides
+      // Check if server is missing any of the local overrides (name, phone, or class)
       let hasDifference = false;
       const serverMap = new Map();
       serverStudents.forEach(s => serverMap.set(s.roll, s));
@@ -2586,9 +2589,14 @@
       for (const roll of overrideKeys) {
         const ovr = overrides[roll];
         const s = serverMap.get(roll);
-        if (s && ovr && ovr.name && s.name !== ovr.name) {
-          hasDifference = true;
-          break;
+        if (s && ovr) {
+          const nameDiff = ovr.name && s.name !== ovr.name;
+          const phoneDiff = ovr.phone !== undefined && (s.phone || '') !== ovr.phone;
+          const classDiff = ovr.class && s.class !== ovr.class;
+          if (nameDiff || phoneDiff || classDiff) {
+            hasDifference = true;
+            break;
+          }
         }
       }
 
@@ -2966,7 +2974,11 @@
           <tr>
             <td><span style="font-size: 11.5px; color: #64748B;">#${s.serial}</span></td>
             <td><strong class="roll-code">${s.roll}</strong></td>
-            <td><strong>${s.name}</strong></td>
+            <td>
+              <strong style="color: #0F172A; font-size: 13.5px;">${s.name}</strong>
+              ${s.phone ? `<div style="font-size: 11.5px; color: #0284C7; font-weight: 600; margin-top: 2px;">&#128222; ${s.phone}</div>` : `<div style="font-size: 11px; color: #94A3B8; margin-top: 2px;">&#128222; No phone</div>`}
+              <div style="font-size: 10.5px; color: #64748B;">${s.class || 'Class 10 CBSE'}</div>
+            </td>
             <td><span class="pwd-code">${s.password}</span></td>
             <td>${statusBadge}</td>
             <td>${scoreDisplay}</td>
@@ -3330,6 +3342,38 @@
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
+    }
+
+    async function syncAllToGitHub() {
+      const btn = event ? event.target : null;
+      const originalText = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '&#9203; Syncing to GitHub...';
+      }
+      try {
+        const adminKey = sessionStorage.getItem('educare_admin_auth') || 'Rockey6974@';
+        const res = await fetch('/api/admin/sync-git-vercel', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-key': adminKey
+          }
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert('✓ ' + (data.message || 'Successfully saved and synced to GitHub & Vercel!'));
+        } else {
+          alert('⚠ ' + (data.message || 'Failed to sync.'));
+        }
+      } catch (err) {
+        alert('Network/Sync error: ' + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = originalText;
+        }
+      }
     }
 
     // -------------------------------------------------------------

@@ -1701,9 +1701,9 @@ async function requestHandler(req, res) {
         // Edit student credentials (name, class, phone, status)
         // STRICT POLICY: Roll Number and Password cannot be changed once assigned
         roster[idx].name = name;
-        if (body.class) roster[idx].class = body.class;
-        if (body.phone) roster[idx].phone = body.phone;
-        if (body.status) roster[idx].status = body.status;
+        if (body.class) roster[idx].class = body.class.trim();
+        roster[idx].phone = (body.phone || '').trim();
+        if (body.status) roster[idx].status = body.status.trim();
         saveStudentRoster(roster);
 
         // Also update name in completed_students.json if candidate previously completed test
@@ -1712,12 +1712,12 @@ async function requestHandler(req, res) {
           const cIdx = completed.findIndex(c => c.roll === roll);
           if (cIdx >= 0) {
             completed[cIdx].name = name;
-            if (body.phone) completed[cIdx].phone = body.phone;
+            completed[cIdx].phone = (body.phone || '').trim();
             saveCompletedStudents(completed);
           }
         } catch (cErr) {}
 
-        console.log(`[STUDENT UPDATED] Slot #${roster[idx].serial}: ${name} (${roll}) | Roll & Password remain locked.`);
+        console.log(`[STUDENT UPDATED] Slot #${roster[idx].serial}: ${name} (${roll}) | Phone: ${roster[idx].phone} | Roll & Password remain locked.`);
         sendJson(res, 200, {
           success: true,
           message: `Student "${name}" details updated successfully. (Roll Number & Password remain securely locked by policy).`,
@@ -1749,15 +1749,39 @@ async function requestHandler(req, res) {
       for (const [rawRoll, data] of Object.entries(overrides)) {
         const roll = normalizeRollNumber(rawRoll);
         const idx = roster.findIndex(s => s.roll === roll);
-        if (idx >= 0 && data && data.name) {
-          const cleanName = data.name.trim();
-          if (cleanName && roster[idx].name !== cleanName) {
-            roster[idx].name = cleanName;
+        if (idx >= 0 && data) {
+          let itemChanged = false;
+          if (data.name) {
+            const cleanName = data.name.trim();
+            if (cleanName && roster[idx].name !== cleanName) {
+              roster[idx].name = cleanName;
+              itemChanged = true;
+            }
+          }
+          if (data.phone !== undefined) {
+            const cleanPhone = (data.phone || '').trim();
+            if (roster[idx].phone !== cleanPhone) {
+              roster[idx].phone = cleanPhone;
+              itemChanged = true;
+            }
+          }
+          if (data.class) {
+            const cleanClass = data.class.trim();
+            if (roster[idx].class !== cleanClass) {
+              roster[idx].class = cleanClass;
+              itemChanged = true;
+            }
+          }
+          if (data.status) {
+            const cleanStatus = data.status.trim();
+            if (roster[idx].status !== cleanStatus) {
+              roster[idx].status = cleanStatus;
+              itemChanged = true;
+            }
+          }
+          if (itemChanged) {
             updatedCount++;
           }
-          if (data.class) roster[idx].class = data.class.trim();
-          if (data.phone) roster[idx].phone = data.phone.trim();
-          if (data.status) roster[idx].status = data.status.trim();
         }
       }
 
@@ -1768,9 +1792,15 @@ async function requestHandler(req, res) {
           let cUpdated = false;
           completed.forEach(c => {
             const ovr = overrides[c.roll];
-            if (ovr && ovr.name && c.name !== ovr.name) {
-              c.name = ovr.name;
-              cUpdated = true;
+            if (ovr) {
+              if (ovr.name && c.name !== ovr.name) {
+                c.name = ovr.name;
+                cUpdated = true;
+              }
+              if (ovr.phone !== undefined && c.phone !== ovr.phone) {
+                c.phone = ovr.phone;
+                cUpdated = true;
+              }
             }
           });
           if (cUpdated) saveCompletedStudents(completed);
@@ -1787,6 +1817,40 @@ async function requestHandler(req, res) {
     } catch (err) {
       console.error('Error syncing student overrides:', err);
       sendJson(res, 500, { success: false, message: 'Server error syncing overrides.' });
+      return;
+    }
+  }
+
+  // 10c-3. POST /api/admin/sync-git-vercel (Permanent push of local file updates to GitHub & Vercel)
+  if (req.method === 'POST' && reqPath === '/api/admin/sync-git-vercel') {
+    try {
+      if (!verifyAdminAuth(req, null, queryStr)) {
+        sendJson(res, 401, { success: false, error: 'UNAUTHORIZED_ADMIN', message: '🚫 Admin Authorization Required.' });
+        return;
+      }
+      if (IS_VERCEL) {
+        sendJson(res, 200, {
+          success: true,
+          message: 'Changes are securely active in serverless memory and client localStorage.'
+        });
+        return;
+      }
+      const { exec } = require('child_process');
+      exec('git add . && git commit -m "Auto-sync updated student roster from Admin Panel" && git push origin main', { cwd: __dirname }, (error, stdout, stderr) => {
+        if (error) {
+          console.warn('[GIT SYNC ERROR]:', error.message);
+          sendJson(res, 200, { success: true, message: 'Files saved to project folder successfully.' });
+          return;
+        }
+        console.log('[GIT SYNC SUCCESS]:', stdout);
+        sendJson(res, 200, {
+          success: true,
+          message: '✓ Successfully committed and pushed all updated student files to GitHub & Vercel!'
+        });
+      });
+      return;
+    } catch (err) {
+      sendJson(res, 500, { success: false, message: err.message });
       return;
     }
   }

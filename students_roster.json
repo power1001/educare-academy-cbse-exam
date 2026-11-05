@@ -10,11 +10,12 @@
   },
   {
     "serial": 2,
-    "name": "Shivam Singh",
+    "name": "Shivam Kumar Singh",
     "roll": "26CBSEBRDGPF",
     "password": "Edu@26",
     "class": "Class 10 CBSE",
-    "status": "ACTIVE"
+    "status": "ACTIVE",
+    "phone": "9876543210"
   },
   {
     "serial": 3,
