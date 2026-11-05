@@ -1106,7 +1106,31 @@ async function requestHandler(req, res) {
         return;
       }
 
-      // All checks passed!
+      // All checks passed! Register active exam session immediately with photo
+      let candidatePhoto = body.photoUrl || '';
+      if (candidatePhoto && candidatePhoto.startsWith('data:image/') && !IS_VERCEL) {
+        try {
+          const matches = candidatePhoto.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+          if (matches && matches.length === 3) {
+            const imgBuffer = Buffer.from(matches[2], 'base64');
+            const photoName = `${normalizedRoll}_photo.jpg`;
+            fs.writeFileSync(path.join(PHOTOS_DIR, photoName), imgBuffer);
+            candidatePhoto = `/records/photos/${photoName}`;
+          }
+        } catch (e) {}
+      }
+
+      activeExamSessions.set(normalizedRoll, {
+        roll: normalizedRoll,
+        name: studentName,
+        startTime: Date.now(),
+        lastActivity: Date.now(),
+        violationsCount: 0,
+        violations: [],
+        photoUrl: candidatePhoto,
+        status: 'IN_PROGRESS'
+      });
+
       sendJson(res, 200, {
         success: true,
         normalizedRoll: normalizedRoll,
@@ -1145,7 +1169,8 @@ async function requestHandler(req, res) {
           lastActivity: Date.now(),
           violationsCount: 0,
           violations: [],
-          status: 'IN_PROGRESS'
+          status: 'IN_PROGRESS',
+          photoUrl: (session && session.photoUrl) ? session.photoUrl : ''
         };
         activeExamSessions.set(roll, session);
       }
@@ -1156,15 +1181,17 @@ async function requestHandler(req, res) {
       if (body.photoUrl) {
         let pUrl = body.photoUrl;
         if (pUrl.startsWith('data:image/')) {
-          try {
-            const matches = pUrl.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
-            if (matches && matches.length === 3) {
-              const imgBuffer = Buffer.from(matches[2], 'base64');
-              const photoName = `${roll}_photo.jpg`;
-              fs.writeFileSync(path.join(PHOTOS_DIR, photoName), imgBuffer);
-              pUrl = `/records/photos/${photoName}`;
-            }
-          } catch (e) {}
+          if (!IS_VERCEL) {
+            try {
+              const matches = pUrl.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+              if (matches && matches.length === 3) {
+                const imgBuffer = Buffer.from(matches[2], 'base64');
+                const photoName = `${roll}_photo.jpg`;
+                fs.writeFileSync(path.join(PHOTOS_DIR, photoName), imgBuffer);
+                pUrl = `/records/photos/${photoName}`;
+              }
+            } catch (e) {}
+          }
         }
         session.photoUrl = pUrl;
       }
@@ -1225,16 +1252,18 @@ async function requestHandler(req, res) {
 
       let photoUrl = body.photoUrl || (active ? active.photoUrl : '') || (existsIndex >= 0 ? completedList[existsIndex].photoUrl : '') || '';
       if (photoUrl && photoUrl.startsWith('data:image/')) {
-        try {
-          const matches = photoUrl.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
-          if (matches && matches.length === 3) {
-            const imgBuffer = Buffer.from(matches[2], 'base64');
-            const photoName = `${roll}_photo.jpg`;
-            fs.writeFileSync(path.join(PHOTOS_DIR, photoName), imgBuffer);
-            photoUrl = `/records/photos/${photoName}`;
+        if (!IS_VERCEL) {
+          try {
+            const matches = photoUrl.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+            if (matches && matches.length === 3) {
+              const imgBuffer = Buffer.from(matches[2], 'base64');
+              const photoName = `${roll}_photo.jpg`;
+              fs.writeFileSync(path.join(PHOTOS_DIR, photoName), imgBuffer);
+              photoUrl = `/records/photos/${photoName}`;
+            }
+          } catch (err) {
+            console.warn('Error saving photo buffer:', err);
           }
-        } catch (err) {
-          console.warn('Error saving photo buffer:', err);
         }
       }
 
@@ -2122,9 +2151,11 @@ async function requestHandler(req, res) {
     return;
   }
 
-  const filePath = path.join(PUBLIC_DIR, serveFile);
+  const filePath = serveFile.startsWith('/records/')
+    ? path.join(DATA_DIR, serveFile)
+    : path.join(PUBLIC_DIR, serveFile);
 
-  if (!filePath.startsWith(PUBLIC_DIR)) {
+  if (!filePath.startsWith(PUBLIC_DIR) && !filePath.startsWith(DATA_DIR)) {
     res.writeHead(403, { 'Content-Type': 'text/plain' });
     res.end('403 Forbidden');
     return;

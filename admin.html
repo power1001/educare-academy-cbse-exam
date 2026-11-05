@@ -2242,23 +2242,36 @@
           <button type="button" class="admin-modal-close" onclick="closeProctorMediaModal()">&times;</button>
         </div>
         <div class="admin-modal-body" style="padding: 20px;">
+          <!-- Status Banner -->
+          <div id="proctorStatusBanner" style="margin-bottom: 16px; padding: 12px 14px; border-radius: 8px; font-size: 13px; line-height: 1.45;"></div>
+
+          <!-- Photo Section -->
+          <div id="proctorPhotoSection" style="margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <h4 style="font-size: 13.5px; font-weight: 700; color: #0F172A; margin: 0;">
+                &#128247; Candidate Identity Verification Snapshot:
+              </h4>
+              <span id="proctorPhotoStatusTag" style="font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 700;"></span>
+            </div>
+            <div style="text-align: center; background: #F8FAFC; border: 1.5px dashed #CBD5E1; border-radius: 8px; padding: 16px;">
+              <img id="proctorCandidatePhoto" src="" alt="Candidate Photo" style="max-width: 280px; max-height: 200px; border-radius: 6px; border: 1px solid #CBD5E1; display: none; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+              <div id="proctorNoPhotoMsg" style="color: #64748B; font-size: 13px; padding: 12px 0;">
+                <div style="font-size: 32px; margin-bottom: 6px;">📷</div>
+                <strong style="color: #334155; font-size: 14px;">No Verification Photo Available Yet</strong>
+                <p style="font-size: 12px; color: #94A3B8; margin-top: 4px; max-width: 420px; margin-left: auto; margin-right: auto;">
+                  The student has not started today's assessment yet. The identity photo is captured automatically the moment the student starts the exam.
+                </p>
+              </div>
+            </div>
+          </div>
+
           <!-- Video Section -->
-          <div id="proctorVideoSection" style="margin-bottom: 18px;">
+          <div id="proctorVideoSection">
             <h4 style="font-size: 13.5px; font-weight: 700; color: #0F172A; margin-bottom: 8px;">
               &#128249; Proctoring Video Recording (Compressed WebM Stream):
             </h4>
-            <video id="proctorVideoPlayer" controls playsinline style="width: 100%; max-height: 360px; background: #000; border-radius: 8px;"></video>
+            <video id="proctorVideoPlayer" controls playsinline style="width: 100%; max-height: 340px; background: #000; border-radius: 8px; display: none;"></video>
             <div id="proctorVideoInfo" style="font-size: 12px; color: #64748B; margin-top: 6px;"></div>
-          </div>
-
-          <!-- Photo Section -->
-          <div id="proctorPhotoSection">
-            <h4 style="font-size: 13.5px; font-weight: 700; color: #0F172A; margin-bottom: 8px;">
-              &#128247; Candidate Identity Verification Snapshot:
-            </h4>
-            <div style="text-align: center; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px;">
-              <img id="proctorCandidatePhoto" src="" alt="Candidate Photo" style="max-width: 280px; max-height: 200px; border-radius: 6px; border: 1px solid #CBD5E1;">
-            </div>
           </div>
         </div>
         <div style="padding: 12px 20px; border-top: 1px solid #E2E8F0; background: #F8FAFC; display: flex; justify-content: flex-end;">
@@ -2975,9 +2988,20 @@
             <td><span style="font-size: 11.5px; color: #64748B;">#${s.serial}</span></td>
             <td><strong class="roll-code">${s.roll}</strong></td>
             <td>
-              <strong style="color: #0F172A; font-size: 13.5px;">${s.name}</strong>
-              ${s.phone ? `<div style="font-size: 11.5px; color: #0284C7; font-weight: 600; margin-top: 2px;">&#128222; ${s.phone}</div>` : `<div style="font-size: 11px; color: #94A3B8; margin-top: 2px;">&#128222; No phone</div>`}
-              <div style="font-size: 10.5px; color: #64748B;">${s.class || 'Class 10 CBSE'}</div>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                ${s.photoUrl ? `
+                  <img src="${escapeHtml(s.photoUrl)}" alt="Photo" onclick="openProctorMediaModal('${s.roll}')" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid ${s.isInProgress ? '#10B981' : '#0284C7'}; cursor: pointer; flex-shrink: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" title="Click to view full surveillance media">
+                ` : `
+                  <div onclick="openProctorMediaModal('${s.roll}')" style="width: 36px; height: 36px; border-radius: 50%; background: #F1F5F9; color: #475569; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; border: 1.5px solid #CBD5E1; cursor: pointer; flex-shrink: 0;" title="No photo captured yet (Click to inspect)">
+                    ${escapeHtml((s.name || 'S').trim().charAt(0).toUpperCase())}
+                  </div>
+                `}
+                <div>
+                  <strong style="color: #0F172A; font-size: 13.5px;">${escapeHtml(s.name)}</strong>
+                  ${s.phone ? `<div style="font-size: 11.5px; color: #0284C7; font-weight: 600; margin-top: 2px;">&#128222; ${escapeHtml(s.phone)}</div>` : `<div style="font-size: 11px; color: #94A3B8; margin-top: 2px;">&#128222; No phone</div>`}
+                  <div style="font-size: 10.5px; color: #64748B;">${escapeHtml(s.class || 'Class 10 CBSE')}</div>
+                </div>
+              </div>
             </td>
             <td><span class="pwd-code">${s.password}</span></td>
             <td>${statusBadge}</td>
@@ -3687,29 +3711,77 @@
       const student = allStudents.find(s => s.roll === roll);
       if (!student) return;
 
-      document.getElementById('proctorMediaTitle').innerHTML = `&#128249; Proctor Surveillance: ${student.name} (${student.roll})`;
+      document.getElementById('proctorMediaTitle').innerHTML = `&#128249; Proctor Surveillance: ${escapeHtml(student.name)} (${escapeHtml(student.roll)})`;
       document.getElementById('proctorMediaSubtitle').textContent = `Candidate #${student.serial} | Surveillance Media (Auto-purges daily at 1:00 AM IST)`;
 
+      const banner = document.getElementById('proctorStatusBanner');
+      const photoTag = document.getElementById('proctorPhotoStatusTag');
       const videoPlayer = document.getElementById('proctorVideoPlayer');
       const videoInfo = document.getElementById('proctorVideoInfo');
       const photoImg = document.getElementById('proctorCandidatePhoto');
+      const noPhotoMsg = document.getElementById('proctorNoPhotoMsg');
 
+      // 1. Overall Status Banner
+      if (student.isInProgress) {
+        banner.style.display = 'block';
+        banner.style.background = '#FEF3C7';
+        banner.style.border = '1px solid #F59E0B';
+        banner.style.color = '#92400E';
+        banner.innerHTML = '<strong>🔴 Live Assessment in Progress:</strong> Candidate is actively taking the test right now. Identity verification photo is displayed below. Full continuous video stream records in background and uploads automatically upon final exam submission.';
+      } else if (student.attempted) {
+        banner.style.display = 'block';
+        banner.style.background = '#ECFDF5';
+        banner.style.border = '1px solid #10B981';
+        banner.style.color = '#065F46';
+        banner.innerHTML = `<strong>✔ Exam Completed:</strong> Candidate submitted test with score <strong>${student.score}/${student.total || 25}</strong> (${student.percentage}%). Verification snapshot and proctoring video are stored below.`;
+      } else {
+        banner.style.display = 'block';
+        banner.style.background = '#F1F5F9';
+        banner.style.border = '1px solid #CBD5E1';
+        banner.style.color = '#475569';
+        banner.innerHTML = '<strong>⏳ Pending Candidate:</strong> This student has <strong>not logged in or started the exam yet</strong>. Camera photo and proctoring surveillance video will be recorded automatically as soon as the student logs in and clicks &quot;Start Exam&quot;.';
+      }
+
+      // 2. Photo Snapshot Display
+      const hasPhoto = !!(student.photoUrl || student.capturedPhoto);
+      if (hasPhoto) {
+        photoImg.style.display = 'inline-block';
+        photoImg.src = student.photoUrl || student.capturedPhoto;
+        if (noPhotoMsg) noPhotoMsg.style.display = 'none';
+        if (photoTag) {
+          photoTag.style.display = 'inline-block';
+          photoTag.style.background = '#ECFDF5';
+          photoTag.style.color = '#065F46';
+          photoTag.textContent = '✔ VERIFIED';
+        }
+      } else {
+        photoImg.style.display = 'none';
+        photoImg.src = '';
+        if (noPhotoMsg) noPhotoMsg.style.display = 'block';
+        if (photoTag) {
+          photoTag.style.display = 'inline-block';
+          photoTag.style.background = '#F1F5F9';
+          photoTag.style.color = '#64748B';
+          photoTag.textContent = 'PENDING';
+        }
+      }
+
+      // 3. Proctoring Video Display
       if (student.videoUrl) {
         videoPlayer.style.display = 'block';
         videoPlayer.src = student.videoUrl;
         videoPlayer.load();
-        videoInfo.innerHTML = `✓ Compressed proctoring video stream loaded from server: <a href="${student.videoUrl}" target="_blank" style="color: #2563EB;">Direct Link</a> (Scheduled for auto-purge at 01:00 AM IST)`;
+        videoInfo.innerHTML = `✓ Compressed proctoring video stream loaded from server: <a href="${student.videoUrl}" target="_blank" style="color: #2563EB; font-weight: 700;">Direct Download Link</a> (Scheduled for auto-purge at 01:00 AM IST)`;
       } else {
         videoPlayer.style.display = 'none';
         videoPlayer.src = '';
-        videoInfo.innerHTML = `<span style="color: #64748B;">No video uploaded for this student yet. During active exam, webcam video is compressed to ~100 kbps and uploaded upon submission.</span>`;
-      }
-
-      if (student.photoUrl || student.capturedPhoto) {
-        photoImg.style.display = 'inline-block';
-        photoImg.src = student.photoUrl || student.capturedPhoto;
-      } else {
-        photoImg.style.display = 'none';
+        if (student.isInProgress) {
+          videoInfo.innerHTML = `<span style="color: #D97706; font-weight: 600;">🔴 Recording in progress... Video will be uploaded to server as soon as the candidate submits their exam.</span>`;
+        } else if (student.attempted) {
+          videoInfo.innerHTML = `<span style="color: #64748B;">No video was captured for this attempt (webcam video recording requires student browser camera permission).</span>`;
+        } else {
+          videoInfo.innerHTML = `<span style="color: #64748B;">No video uploaded for this student yet. During active exam, webcam video is compressed to ~100 kbps and uploaded upon final submission.</span>`;
+        }
       }
 
       document.getElementById('proctorMediaModal').classList.add('active');

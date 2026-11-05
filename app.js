@@ -454,14 +454,23 @@
         state.proctoring.stream.getTracks().forEach(t => t.stop());
       }
 
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' },
-        audio: true
-      });
+      let stream = null;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' },
+          audio: true
+        });
+      } catch (audioErr) {
+        console.warn('Audio device unavailable or permission denied, falling back to video-only stream:', audioErr);
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' }
+        });
+      }
 
       state.proctoring.stream = stream;
       if (dom.setupVideoFeed) {
         dom.setupVideoFeed.srcObject = stream;
+        dom.setupVideoFeed.play().catch(() => {});
       }
       if (dom.videoStatusOverlay) dom.videoStatusOverlay.style.display = 'none';
       if (dom.chkCamera) {
@@ -473,7 +482,7 @@
         dom.chkMic.querySelector('.check-icon').style.color = '#10B981';
       }
       if (dom.btnRequestMedia) {
-        dom.btnRequestMedia.textContent = '✔ Camera & Audio Stream Active';
+        dom.btnRequestMedia.textContent = '✔ Camera & Surveillance Active';
         dom.btnRequestMedia.style.background = '#059669';
         dom.btnRequestMedia.disabled = true;
       }
@@ -569,10 +578,11 @@
     dom.btnStartExam.textContent = 'Verifying Student Roster...';
 
     try {
+      const candidatePhoto = state.student.photoUrl || state.proctoring.photoBase64 || '';
       const res = await fetch('/api/verify-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, roll, password })
+        body: JSON.stringify({ name, roll, password, photoUrl: candidatePhoto })
       });
 
       const data = await res.json();
@@ -624,13 +634,14 @@
 
   function captureCandidateSnapshot() {
     try {
-      if (!dom.setupVideoFeed || !state.proctoring.stream) return;
+      const videoSource = (dom.setupVideoFeed && dom.setupVideoFeed.srcObject) ? dom.setupVideoFeed : dom.liveExamVideoFeed;
+      if (!videoSource || !state.proctoring.stream) return;
       const canvas = document.createElement('canvas');
       canvas.width = 320;
       canvas.height = 240;
       const ctx = canvas.getContext('2d');
-      ctx.drawImage(dom.setupVideoFeed, 0, 0, 320, 240);
-      state.proctoring.photoBase64 = canvas.toDataURL('image/jpeg', 0.8);
+      ctx.drawImage(videoSource, 0, 0, 320, 240);
+      state.proctoring.photoBase64 = canvas.toDataURL('image/jpeg', 0.85);
       state.student.photoUrl = state.proctoring.photoBase64;
     } catch (e) {
       console.warn('Snapshot capture error:', e);
@@ -646,18 +657,34 @@
     if (dom.sidebarStudentName) dom.sidebarStudentName.textContent = state.student.name;
     if (dom.sidebarStudentRoll) dom.sidebarStudentRoll.textContent = state.student.roll;
 
-    // Attach stream to live proctor feed in background (never visible to student)
+    // Attach stream to background video feed without using display:none (which pauses frame decoding)
     if (dom.liveExamVideoFeed && state.proctoring.stream) {
       dom.liveExamVideoFeed.srcObject = state.proctoring.stream;
-      dom.liveExamVideoFeed.style.display = 'none';
-      dom.liveExamVideoFeed.style.visibility = 'hidden';
+      dom.liveExamVideoFeed.style.display = 'block';
       dom.liveExamVideoFeed.style.position = 'fixed';
       dom.liveExamVideoFeed.style.top = '-9999px';
       dom.liveExamVideoFeed.style.left = '-9999px';
+      dom.liveExamVideoFeed.style.width = '320px';
+      dom.liveExamVideoFeed.style.height = '240px';
+      dom.liveExamVideoFeed.style.opacity = '0';
+      dom.liveExamVideoFeed.style.pointerEvents = 'none';
+      dom.liveExamVideoFeed.play().catch(() => {});
     }
-    if (dom.setupVideoFeed) {
-      dom.setupVideoFeed.srcObject = null;
-    }
+
+    // Immediately transmit START heartbeat with candidate verification photo to Admin Panel
+    try {
+      const startPhoto = state.student.photoUrl || state.proctoring.photoBase64 || '';
+      fetch('/api/exam-activity', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          roll: state.student.roll,
+          name: state.student.name,
+          type: 'START',
+          photoUrl: startPhoto
+        })
+      }).catch(() => {});
+    } catch (e) {}
 
     // Start continuous compressed proctoring video recording & snapshots
     startProctoringVideoRecording();
@@ -872,7 +899,11 @@
     }
 
     // Stop proctoring video and upload compressed media
-    stopAndUploadProctoringVideo();
+    try {
+      await stopAndUploadProctoringVideo();
+    } catch(e) {
+      console.warn('Video upload error:', e);
+    }
 
     // Render Scorecard
     renderResultScorecard(score, total, percentage, timeTakenStr);
@@ -1043,12 +1074,19 @@
 
     try {
       // Determine supported compressed WebM/MP4 mimeType
-      let mimeType = 'video/webm;codecs=vp8';
+      let mimeType = '';
       if (typeof MediaRecorder !== 'undefined') {
-        if (!MediaRecorder.isTypeSupported(mimeType)) {
-          if (MediaRecorder.isTypeSupported('video/webm')) mimeType = 'video/webm';
-          else if (MediaRecorder.isTypeSupported('video/mp4')) mimeType = 'video/mp4';
-          else mimeType = '';
+        const candidateTypes = [
+          'video/webm;codecs=vp8',
+          'video/webm',
+          'video/mp4;codecs=avc1',
+          'video/mp4'
+        ];
+        for (const t of candidateTypes) {
+          if (MediaRecorder.isTypeSupported(t)) {
+            mimeType = t;
+            break;
+          }
         }
 
         const options = {
@@ -1062,9 +1100,9 @@
             state.proctoring.recordedChunks.push(event.data);
           }
         };
-        recorder.start(5000); // Record in 5-second compressed slices
+        recorder.start(3000); // Record in 3-second compressed slices
         state.proctoring.mediaRecorder = recorder;
-        console.log('[PROCTOR] Compressed Video Recording Started (100 kbps bitrate)');
+        console.log('[PROCTOR] Compressed Video Recording Started (100 kbps bitrate)', mimeType);
       }
     } catch (err) {
       console.warn('[PROCTOR] MediaRecorder not supported or failed to start:', err);
@@ -1078,14 +1116,14 @@
   function capturePeriodicCompressedSnapshot() {
     if (!state.proctoring.isExamActive || state.submitted) return;
     try {
-      const video = dom.liveExamVideoFeed || dom.setupVideoFeed;
+      const video = (dom.liveExamVideoFeed && dom.liveExamVideoFeed.videoWidth > 0) ? dom.liveExamVideoFeed : dom.setupVideoFeed;
       if (!video || !state.proctoring.stream) return;
       const canvas = document.createElement('canvas');
       canvas.width = 320;
       canvas.height = 240;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(video, 0, 0, 320, 240);
-      const compressedJpeg = canvas.toDataURL('image/jpeg', 0.40); // 40% quality (~15KB per snapshot)
+      const compressedJpeg = canvas.toDataURL('image/jpeg', 0.45); // 45% quality (~15KB per snapshot)
       
       fetch('/api/exam-activity', {
         method: 'POST',
@@ -1108,6 +1146,9 @@
 
     if (state.proctoring.mediaRecorder && state.proctoring.mediaRecorder.state !== 'inactive') {
       try {
+        if (state.proctoring.mediaRecorder.state === 'recording') {
+          state.proctoring.mediaRecorder.requestData();
+        }
         state.proctoring.mediaRecorder.stop();
       } catch (e) {}
     }
