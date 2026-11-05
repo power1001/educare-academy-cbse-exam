@@ -1865,8 +1865,9 @@
               </table>
             </div>
 
-            <div class="table-footer">
+            <div class="table-footer" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
               <div>Showing <strong id="visibleCount">0</strong> of <strong id="totalCount">500</strong> candidates</div>
+              <div id="paginationControls" style="display: flex; gap: 8px; align-items: center;"></div>
               <div style="font-size: 12px; color: #64748B;">
                 * Single-attempt lock enforces one test per Roll Number. Admin can reset individual attempts using the Reset button.
               </div>
@@ -2499,7 +2500,7 @@
         loadData();
         loadPortalSchedule();
         if (!syncIntervalId) {
-          syncIntervalId = setInterval(loadData, 2500); // Realtime 2.5s Sync with student portal
+          syncIntervalId = setInterval(loadData, 8000); // Ultra-smooth 8s sync without UI stutter
         }
       } else {
         errBox.style.display = 'block';
@@ -2603,7 +2604,27 @@
       };
     }
 
-    async function loadData() {
+    let currentPage = 1;
+    const PAGE_SIZE = 50;
+    let lastDataSignature = '';
+
+    function changePage(delta) {
+      currentPage += delta;
+      renderTable();
+      const wrap = document.querySelector('.table-responsive');
+      if (wrap) wrap.scrollTop = 0;
+    }
+
+    async function loadData(force = false) {
+      // Don't disturb user if they are currently typing in search or have a modal open
+      const searchEl = document.getElementById('searchInput');
+      const isTyping = searchEl && document.activeElement === searchEl && searchEl.value.length > 0;
+      const isModalOpen = !!document.querySelector('.modal.active, #editStudentModal.active, #shareStudentWaModal.active, #studentScorecardModal.active, #proctorMediaModal.active, #violationReasonsModal.active');
+
+      if (!force && (isTyping || isModalOpen)) {
+        return; // Don't interrupt active user interaction
+      }
+
       try {
         const res = await fetch('/api/admin/all-students');
         const data = await res.json();
@@ -2611,7 +2632,12 @@
 
         allStudents = data.students || [];
         updateStats(data.summary);
-        renderTable();
+
+        const newSignature = allStudents.map(s => `${s.roll}:${s.status}:${s.score}:${s.violationsCount}:${s.name}:${s.phone}`).join(';') + (data.summary ? JSON.stringify(data.summary) : '');
+        if (force || newSignature !== lastDataSignature) {
+          lastDataSignature = newSignature;
+          renderTable();
+        }
       } catch (err) {
         console.warn('Backend API unavailable, using client fallback roster:', err);
         const fallback = generateFallbackRoster();
@@ -2679,8 +2705,36 @@
         return (a.serial || 0) - (b.serial || 0);
       });
 
+      const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+      if (currentPage > totalPages) currentPage = totalPages;
+      if (currentPage < 1) currentPage = 1;
+
+      const startIndex = (currentPage - 1) * PAGE_SIZE;
+      const endIndex = Math.min(startIndex + PAGE_SIZE, filtered.length);
+      const pagedList = filtered.slice(startIndex, endIndex);
+
       document.getElementById('visibleCount').textContent = filtered.length;
       document.getElementById('totalCount').textContent = allStudents.length;
+
+      // Update Pagination UI
+      const paginationEl = document.getElementById('paginationControls');
+      if (paginationEl) {
+        if (totalPages <= 1) {
+          paginationEl.innerHTML = '';
+        } else {
+          paginationEl.innerHTML = `
+            <button type="button" onclick="changePage(-1)" ${currentPage <= 1 ? 'disabled style="opacity:0.4; cursor:not-allowed; padding: 4px 10px; border-radius: 6px; border: 1px solid #CBD5E1; background: #fff;"' : 'style="cursor:pointer; padding: 4px 10px; border-radius: 6px; border: 1px solid #CBD5E1; background: #fff; font-weight: 600;"'}>
+              &larr; Prev
+            </button>
+            <span style="padding: 4px 10px; background: #fff; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 12px; font-weight: 700; color: #1E293B;">
+              Page ${currentPage} of ${totalPages} (${filtered.length > 0 ? startIndex + 1 : 0}–${endIndex})
+            </span>
+            <button type="button" onclick="changePage(1)" ${currentPage >= totalPages ? 'disabled style="opacity:0.4; cursor:not-allowed; padding: 4px 10px; border-radius: 6px; border: 1px solid #CBD5E1; background: #fff;"' : 'style="cursor:pointer; padding: 4px 10px; border-radius: 6px; border: 1px solid #CBD5E1; background: #fff; font-weight: 600;"'}>
+              Next &rarr;
+            </button>
+          `;
+        }
+      }
 
       if (filtered.length === 0) {
         tbody.innerHTML = `
@@ -2694,7 +2748,7 @@
       }
 
       let html = '';
-      filtered.forEach(s => {
+      pagedList.forEach(s => {
         // 1. Exam Status Badge
         let statusBadge = '';
         if (s.isInProgress) {
@@ -3080,10 +3134,15 @@
       });
     });
 
-    // Search Input
+    // Search Input with 150ms Debounce for 60fps typing
+    let searchDebounceTimer = null;
     document.getElementById('searchInput').addEventListener('input', (e) => {
       searchQuery = e.target.value;
-      renderTable();
+      currentPage = 1;
+      clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(() => {
+        renderTable();
+      }, 150);
     });
 
     // Refresh Button
@@ -3768,7 +3827,7 @@
       loadData();
       loadPortalSchedule();
       if (!syncIntervalId) {
-        syncIntervalId = setInterval(loadData, 3000);
+        syncIntervalId = setInterval(loadData, 8000);
       }
     }
   </script>

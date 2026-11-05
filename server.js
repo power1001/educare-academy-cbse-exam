@@ -207,10 +207,14 @@ function evaluatePortalStatus(schedule) {
   };
 }
 
+let inMemoryPackageConfig = null;
+let inMemoryQuestionsDb = null;
+
 function getPackageConfig() {
+  if (inMemoryPackageConfig) return inMemoryPackageConfig;
   try {
     const pkg = JSON.parse(fs.readFileSync(PACKAGE_FILE, 'utf8'));
-    return pkg.examConfig || {
+    inMemoryPackageConfig = pkg.examConfig || {
       institutionName: 'Educare Academy',
       examName: 'Educare Academy - CBSE Class 10th Science Daily Chapter Assessment',
       commonPassword: 'Edu@26',
@@ -219,6 +223,7 @@ function getPackageConfig() {
       teacherWhatsApp: '8448467381',
       students: []
     };
+    return inMemoryPackageConfig;
   } catch (err) {
     console.error('Error reading package.json config:', err);
     return {
@@ -234,9 +239,11 @@ function getPackageConfig() {
 }
 
 function getQuestionsDb() {
+  if (inMemoryQuestionsDb) return inMemoryQuestionsDb;
   try {
     if (fs.existsSync(QUESTIONS_FILE)) {
-      return JSON.parse(fs.readFileSync(QUESTIONS_FILE, 'utf8'));
+      inMemoryQuestionsDb = JSON.parse(fs.readFileSync(QUESTIONS_FILE, 'utf8'));
+      return inMemoryQuestionsDb;
     }
   } catch (err) {
     console.error('Error reading cbse10_questions.json:', err);
@@ -245,14 +252,16 @@ function getQuestionsDb() {
 }
 
 function getActiveConfig() {
+  if (inMemoryActiveConfig) return inMemoryActiveConfig;
   try {
     if (fs.existsSync(ACTIVE_CONFIG_FILE)) {
-      return JSON.parse(fs.readFileSync(ACTIVE_CONFIG_FILE, 'utf8'));
+      inMemoryActiveConfig = JSON.parse(fs.readFileSync(ACTIVE_CONFIG_FILE, 'utf8'));
+      return inMemoryActiveConfig;
     }
   } catch (err) {
     console.error('Error reading active_test_config.json:', err);
   }
-  return {
+  inMemoryActiveConfig = {
     institution: 'Educare Academy',
     activeChapterId: 1,
     activeChapterName: 'Chemical Reactions and Equations',
@@ -264,15 +273,17 @@ function getActiveConfig() {
     teacherNotice: 'Ye question ka set se aaj test hoga. 50 questions import ho chuke hain, students ke test me inme se 25 questions aayenge.',
     selectedQuestionIds: Array.from({ length: 25 }, (_, i) => i + 1)
   };
+  return inMemoryActiveConfig;
 }
 
 function saveActiveConfig(cfg) {
+  inMemoryActiveConfig = cfg;
   try {
     fs.writeFileSync(ACTIVE_CONFIG_FILE, JSON.stringify(cfg, null, 2), 'utf8');
     return true;
   } catch (err) {
-    console.error('Error saving active_test_config.json:', err);
-    return false;
+    console.warn('[STORAGE] Warning writing active_test_config.json (using memory cache):', err.message);
+    return true;
   }
 }
 

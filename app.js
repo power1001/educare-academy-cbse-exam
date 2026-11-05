@@ -255,7 +255,7 @@
     }
 
     checkSchedule();
-    state.proctoring.schedulePollInterval = setInterval(checkSchedule, 2500);
+    state.proctoring.schedulePollInterval = setInterval(checkSchedule, 10000);
   }
 
   function updatePortalStatusUI(sched) {
@@ -585,6 +585,10 @@
       }
 
       // Login Verified!
+      if (state.proctoring.schedulePollInterval) {
+        clearInterval(state.proctoring.schedulePollInterval);
+        state.proctoring.schedulePollInterval = null;
+      }
       state.student.name = data.studentName || name;
       state.student.roll = data.normalizedRoll || roll;
       state.student.password = password;
