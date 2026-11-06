@@ -458,6 +458,22 @@ function normalizeRollNumber(rawRoll) {
     return alphanumeric;
   }
 
+  // Check if serial number was passed (e.g. 1 to 500)
+  if (/^\d{1,3}$/.test(clean)) {
+    const sNum = parseInt(clean, 10);
+    const roster = getStudentRoster();
+    const match = roster.find(s => s.serial === sNum);
+    if (match) return match.roll;
+    return '26CBSEBRD' + clean.padStart(3, '0');
+  }
+
+  // Check if 3-character suffix was passed (e.g. D2A)
+  if (/^[A-Z0-9]{3}$/.test(clean)) {
+    const roster = getStudentRoster();
+    const match = roster.find(s => s.roll === '26CBSEBRD' + clean || s.roll.endsWith(clean));
+    if (match) return match.roll;
+  }
+
   return clean;
 }
 
@@ -1097,14 +1113,17 @@ async function requestHandler(req, res) {
           return;
         }
 
-        sendJson(res, 403, {
-          success: false,
-          error: 'DAILY_ATTEMPT_EXHAUSTED',
+        sendJson(res, 200, {
+          success: true,
           alreadyCompleted: true,
           completedAt: existingAttempt.completedAt,
           score: existingAttempt.score,
           total: existingAttempt.total || 25,
-          message: `🚫 Daily Attempt Limit Reached: ${student.name} (${student.roll}) has already submitted today's assessment. Dobara exam dene ke liye apne teacher (+91 8448467381) se attempt reset karwayen.`
+          percentage: existingAttempt.percentage,
+          record: existingAttempt,
+          studentName: student.name,
+          normalizedRoll: normalizedRoll,
+          message: `Notice: ${student.name} (${student.roll}) has already submitted today's assessment. Score: ${existingAttempt.score}/${existingAttempt.total || 25}.`
         });
         return;
       }
@@ -1482,6 +1501,57 @@ async function requestHandler(req, res) {
       success: true,
       total: list.length,
       records: list
+    });
+    return;
+  }
+
+  // 8a. GET /api/student-result (Public Student Result & Marksheet Lookup by Roll Number)
+  if (req.method === 'GET' && reqPath === '/api/student-result') {
+    const params = new URLSearchParams(queryStr);
+    const rawRoll = (params.get('roll') || '').trim();
+    if (!rawRoll) {
+      sendJson(res, 400, { success: false, message: 'Roll number is required to search result.' });
+      return;
+    }
+
+    const normRoll = normalizeRollNumber(rawRoll);
+    const roster = getStudentRoster();
+    const student = roster.find(s => s.roll === normRoll || s.roll === rawRoll.toUpperCase());
+    const completedList = getCompletedStudents();
+    const record = completedList.find(s => s.roll === normRoll || s.roll === rawRoll.toUpperCase());
+
+    if (record) {
+      sendJson(res, 200, {
+        success: true,
+        found: true,
+        attempted: true,
+        studentName: record.name || (student ? student.name : 'Student'),
+        roll: record.roll,
+        record: {
+          ...record,
+          name: record.name || (student ? student.name : 'Student'),
+          class: student ? student.class : 'Class 10 CBSE'
+        }
+      });
+      return;
+    }
+
+    if (student) {
+      sendJson(res, 200, {
+        success: false,
+        found: true,
+        attempted: false,
+        studentName: student.name,
+        roll: student.roll,
+        message: `Student ${student.name} (${student.roll}) is registered in Educare Academy, but has not yet submitted today's assessment.`
+      });
+      return;
+    }
+
+    sendJson(res, 404, {
+      success: false,
+      found: false,
+      message: `No assessment record found for Roll Number "${rawRoll}". Please check your roll number (e.g. 26CBSEBRD001).`
     });
     return;
   }

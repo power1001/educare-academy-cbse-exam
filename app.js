@@ -10,6 +10,16 @@
 (function () {
   'use strict';
 
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   // State Management
   const state = {
     config: null,
@@ -146,6 +156,22 @@
     await loadQuestions();
     startPortalScheduleHeartbeat();
     validateRegistrationForm();
+
+    // Check if user came via direct result link e.g. /?result=26CBSEBRD001 or /?roll=001
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const queryRoll = urlParams.get('result') || urlParams.get('roll') || urlParams.get('scorecard');
+      if (queryRoll) {
+        fetch('/api/student-result?roll=' + encodeURIComponent(queryRoll))
+          .then(r => r.json())
+          .then(data => {
+            if (data.success && data.record) {
+              window.displayCompletedRecord(data.record);
+            }
+          })
+          .catch(() => {});
+      }
+    } catch(e) {}
   }
 
   // Fetch initial config & active chapter
@@ -594,6 +620,39 @@
         return;
       }
 
+      // If student has already completed today's assessment, show instant result button!
+      if (data.alreadyCompleted) {
+        window._lastCompletedRecord = data.record || {
+          roll: data.normalizedRoll || roll,
+          name: data.studentName || name,
+          score: data.score,
+          total: data.total || 25,
+          percentage: data.percentage,
+          completedAt: data.completedAt
+        };
+        dom.formValidationError.innerHTML = `
+          <div style="background: #ECFDF5; border: 1.5px solid #10B981; border-radius: 8px; padding: 14px; text-align: left; margin-top: 6px;">
+            <div style="font-size: 14px; font-weight: 800; color: #065F46; margin-bottom: 4px;">
+              &#10004; Aapne Aaj Ki Exam Already Complete Kar Li Hai!
+            </div>
+            <div style="font-size: 12.5px; color: #047857; margin-bottom: 12px; line-height: 1.45;">
+              Candidate: <strong>${escapeHtml(data.studentName || name)}</strong> (${escapeHtml(data.normalizedRoll || roll)})<br>
+              Marks: <strong>${data.score ?? 0} / ${data.total || 25}</strong> (${data.percentage || ''}%) &bull; Submitted: ${escapeHtml(data.completedAt || 'Today')}
+            </div>
+            <button type="button" onclick="window.displayCompletedRecord(window._lastCompletedRecord)" class="btn-primary" style="width: 100%; background: #16A34A; border: none; padding: 11px; font-weight: 700; font-size: 13.5px; cursor: pointer; border-radius: 6px; box-shadow: 0 2px 4px rgba(22,163,74,0.3);">
+              &#128424; View &amp; Print Official Marksheet / Result &rarr;
+            </button>
+            <div style="font-size: 11.5px; color: #475569; margin-top: 8px; text-align: center;">
+              Dobara exam dene ke liye apne teacher (+91 8448467381) se attempt reset karwayen.
+            </div>
+          </div>
+        `;
+        dom.formValidationError.style.display = 'block';
+        dom.btnStartExam.disabled = false;
+        dom.btnStartExam.innerHTML = '&#128640; PROCEED TO TEST &amp; START EXAM &rarr;';
+        return;
+      }
+
       // Login Verified!
       if (state.proctoring.schedulePollInterval) {
         clearInterval(state.proctoring.schedulePollInterval);
@@ -859,25 +918,60 @@
 
     if (state.timer.intervalId) clearInterval(state.timer.intervalId);
 
-    // Calculate score
+    // Calculate score & construct full solutions array for permanent marksheet
     let score = 0;
+    const solutions = [];
+    const optionLetters = ['A', 'B', 'C', 'D'];
+
     state.questions.forEach((q, idx) => {
       const chosen = state.answers[idx];
-      if (chosen !== null && chosen === q.correctAnswer) {
-        score += 1;
-      }
+      const isCorrect = chosen !== null && chosen === q.correctAnswer;
+      if (isCorrect) score += 1;
+
+      const userOptText = (chosen !== null && q.options && q.options[chosen] !== undefined)
+        ? (typeof q.options[chosen] === 'object' ? q.options[chosen].text : q.options[chosen])
+        : 'Not Attempted';
+      const userOptHindi = (chosen !== null && q.options && q.options[chosen] && typeof q.options[chosen] === 'object')
+        ? q.options[chosen].hindi || ''
+        : '';
+      const correctOptText = (q.options && q.options[q.correctAnswer] !== undefined)
+        ? (typeof q.options[q.correctAnswer] === 'object' ? q.options[q.correctAnswer].text : q.options[q.correctAnswer])
+        : '';
+      const correctOptHindi = (q.options && q.options[q.correctAnswer] && typeof q.options[q.correctAnswer] === 'object')
+        ? q.options[q.correctAnswer].hindi || ''
+        : '';
+
+      solutions.push({
+        qIndex: idx + 1,
+        section: q.section || 'A',
+        questionText: q.text || '',
+        questionHindi: q.textHindi || '',
+        userAnswerIndex: chosen,
+        userAnswerLetter: chosen !== null ? (optionLetters[chosen] || String.fromCharCode(65 + chosen)) : '-',
+        userAnswerText: chosen !== null ? `(${optionLetters[chosen] || 'A'}) ${userOptText}` : 'Not Attempted',
+        userAnswerHindi: userOptHindi,
+        correctAnswerIndex: q.correctAnswer,
+        correctAnswerLetter: optionLetters[q.correctAnswer] || 'A',
+        correctAnswerText: `(${optionLetters[q.correctAnswer] || 'A'}) ${correctOptText}`,
+        correctAnswerHindi: correctOptHindi,
+        isCorrect: isCorrect,
+        explanation: q.explanation || ''
+      });
     });
 
     const total = state.questions.length || 25;
     const percentage = ((score / total) * 100).toFixed(1);
-    const timeSpentSec = (25 * 60) - state.timer.remainingSeconds;
+    const timeSpentSec = Math.max(0, (25 * 60) - state.timer.remainingSeconds);
     const minsTaken = Math.floor(timeSpentSec / 60);
     const secsTaken = timeSpentSec % 60;
     const timeTakenStr = `${String(minsTaken).padStart(2, '0')}:${String(secsTaken).padStart(2, '0')}`;
 
-    // Post to server
+    // 1. Immediately render result scorecard for candidate without blocking
+    renderResultScorecard(score, total, percentage, timeTakenStr);
+
+    // 2. Post record with solutions to server
     try {
-      await fetch('/api/complete-exam', {
+      fetch('/api/complete-exam', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -886,27 +980,29 @@
           score: score,
           total: total,
           percentage: percentage,
+          correctCount: score,
+          incorrectCount: (state.answers.filter(a => a !== null).length) - score,
+          skippedCount: total - (state.answers.filter(a => a !== null).length),
+          timeSpentSeconds: timeSpentSec,
+          timeSpentFormatted: timeTakenStr,
           timeTaken: timeTakenStr,
           status: score >= (total * 0.4) ? 'QUALIFIED' : 'NEEDS PRACTICE',
           photoUrl: state.student.photoUrl || '',
           violations: state.proctoring.violations,
           chapterId: state.chapter ? state.chapter.id : 1,
-          chapterName: state.chapter ? state.chapter.name : 'Chemical Reactions and Equations'
+          chapterName: state.chapter ? state.chapter.name : 'Chemical Reactions and Equations',
+          chapterHindi: state.chapter ? state.chapter.hindi : '',
+          solutions: solutions
         })
-      });
+      }).catch(e => console.warn('Complete exam err:', e));
     } catch (e) {
       console.warn('Could not record complete-exam on server:', e);
     }
 
-    // Stop proctoring video and upload compressed media
+    // 3. Stop proctoring video and upload compressed media in background
     try {
-      await stopAndUploadProctoringVideo();
-    } catch(e) {
-      console.warn('Video upload error:', e);
-    }
-
-    // Render Scorecard
-    renderResultScorecard(score, total, percentage, timeTakenStr);
+      stopAndUploadProctoringVideo().catch(e => console.warn('Video upload note:', e));
+    } catch(e) {}
   }
 
   function renderResultScorecard(score, total, percentage, timeTakenStr) {
@@ -1059,6 +1155,204 @@
         ${q.explanation ? `
           <div style="background: #F8FAFC; border: 1px dashed #CBD5E1; padding: 10px 14px; border-radius: 6px; font-size: 12.5px; color: #334155; margin-top: 8px; line-height: 1.45;">
             <strong style="color: #0F172A;">&#128161; NCERT Solution &amp; Concept Explanation:</strong> ${q.explanation}
+          </div>
+        ` : ''}
+      `;
+
+      dom.solutionsList.appendChild(card);
+    });
+  }
+
+  // --- RESULT LOOKUP & SAVED MARKSHEET DISPLAY ---
+  window.openResultLookupModal = function() {
+    const modal = document.getElementById('resultLookupModal');
+    if (modal) {
+      modal.style.display = 'flex';
+      const input = document.getElementById('inputSearchRoll');
+      if (input) {
+        input.value = '';
+        setTimeout(() => input.focus(), 50);
+      }
+      const status = document.getElementById('resultLookupStatus');
+      if (status) status.innerHTML = '';
+    }
+  };
+
+  window.closeResultLookupModal = function() {
+    const modal = document.getElementById('resultLookupModal');
+    if (modal) modal.style.display = 'none';
+  };
+
+  window.handleSearchStudentResult = async function() {
+    const input = document.getElementById('inputSearchRoll');
+    const status = document.getElementById('resultLookupStatus');
+    const btn = document.getElementById('btnSearchStudentResult');
+    if (!input || !status) return;
+
+    const rawRoll = input.value.trim();
+    if (!rawRoll) {
+      status.innerHTML = '<span style="color: #DC2626; font-weight: 700;">⚠ Kripya apna Roll Number enter karein.</span>';
+      return;
+    }
+
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Searching...';
+    }
+    status.innerHTML = '<span style="color: #0284C7; font-weight: 600;">⏳ Searching official assessment records...</span>';
+
+    try {
+      const res = await fetch('/api/student-result?roll=' + encodeURIComponent(rawRoll));
+      const data = await res.json();
+      if (data.success && data.record) {
+        window._lastCompletedRecord = data.record;
+        status.innerHTML = `
+          <div style="background: #ECFDF5; border: 1.5px solid #10B981; border-radius: 8px; padding: 12px; margin-top: 8px;">
+            <div style="font-size: 13.5px; font-weight: 800; color: #065F46; margin-bottom: 4px;">
+              &#10004; Marksheet Mil Gayi! (${escapeHtml(data.studentName || data.record.name)})
+            </div>
+            <div style="font-size: 12px; color: #047857; margin-bottom: 10px; line-height: 1.4;">
+              Roll: <strong>${escapeHtml(data.record.roll)}</strong> | Score: <strong>${data.record.score ?? 0} / ${data.record.total || 25}</strong> (${data.record.percentage ?? ''}%)<br>
+              Chapter: ${escapeHtml(data.record.chapterName || 'CBSE 10th Science')}
+            </div>
+            <button type="button" onclick="window.closeResultLookupModal(); window.displayCompletedRecord(window._lastCompletedRecord);" class="btn-primary" style="width: 100%; background: #16A34A; padding: 10px; font-weight: 700; font-size: 13px; border-radius: 6px; cursor: pointer; box-shadow: 0 2px 4px rgba(22,163,74,0.3);">
+              &#128424; Open &amp; Print Official Marksheet &rarr;
+            </button>
+          </div>
+        `;
+      } else {
+        status.innerHTML = `<span style="color: #DC2626; font-weight: 700;">⚠ ${escapeHtml(data.message || 'Result record not found.')}</span>`;
+      }
+    } catch (e) {
+      status.innerHTML = `<span style="color: #DC2626; font-weight: 700;">⚠ Network failure connecting to result server.</span>`;
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '&#128269; Search Result';
+      }
+    }
+  };
+
+  window.displayCompletedRecord = function(rec) {
+    if (!rec) return;
+    showScreen(dom.resultScreen);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    if (dom.resStudentName) dom.resStudentName.textContent = rec.name || '-';
+    if (dom.resStudentRoll) dom.resStudentRoll.textContent = rec.roll || '-';
+    
+    const resStudentPassword = document.getElementById('resStudentPassword');
+    if (resStudentPassword) resStudentPassword.textContent = 'Edu@26';
+
+    const qpPrintStudentName = document.getElementById('qpPrintStudentName');
+    if (qpPrintStudentName) qpPrintStudentName.textContent = rec.name || '-';
+    const qpPrintStudentRoll = document.getElementById('qpPrintStudentRoll');
+    if (qpPrintStudentRoll) qpPrintStudentRoll.textContent = rec.roll || '-';
+
+    if (dom.resChapterName) {
+      dom.resChapterName.textContent = rec.chapterName 
+        ? `${rec.chapterName} (${rec.chapterHindi || ''})` 
+        : 'CBSE Class 10th Science';
+    }
+    if (dom.resSubmitTime) {
+      dom.resSubmitTime.textContent = rec.completedAt || (new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) + ' IST');
+    }
+
+    const total = rec.total || 25;
+    const score = rec.score !== undefined ? rec.score : 0;
+    const percentage = rec.percentage || ((score / total) * 100).toFixed(1);
+
+    if (dom.resScoreVal) dom.resScoreVal.textContent = score;
+    if (dom.resPercentageVal) dom.resPercentageVal.textContent = `${percentage}%`;
+
+    const correct = rec.correctCount !== undefined ? rec.correctCount : score;
+    const incorrect = rec.incorrectCount !== undefined ? rec.incorrectCount : Math.max(0, total - score);
+    const unattempted = rec.skippedCount !== undefined ? rec.skippedCount : 0;
+    const timeTakenStr = rec.timeSpentFormatted || rec.timeTaken || '25:00';
+
+    if (dom.resCorrectCount) dom.resCorrectCount.textContent = correct;
+    if (dom.resIncorrectCount) dom.resIncorrectCount.textContent = incorrect;
+    if (dom.resUnattemptedCount) dom.resUnattemptedCount.textContent = unattempted;
+    if (dom.resTimeTakenVal) dom.resTimeTakenVal.textContent = timeTakenStr;
+
+    // Status badge & feedback
+    const pctNum = parseFloat(percentage);
+    if (pctNum >= 80) {
+      dom.resStatusBadge.textContent = 'EXCELLENT (A1)';
+      dom.resStatusBadge.style.background = '#DCFCE7';
+      dom.resStatusBadge.style.color = '#15803D';
+      dom.resFeedbackText.textContent = 'Outstanding concept mastery! Keep up the brilliant preparation for CBSE Board exams.';
+    } else if (pctNum >= 50) {
+      dom.resStatusBadge.textContent = 'GOOD PROGRESS (B1)';
+      dom.resStatusBadge.style.background = '#EFF6FF';
+      dom.resStatusBadge.style.color = '#1D4ED8';
+      dom.resFeedbackText.textContent = 'Good effort. Review the incorrect answers below to solidify your understanding.';
+    } else {
+      dom.resStatusBadge.textContent = 'NEEDS REVISION';
+      dom.resStatusBadge.style.background = '#FEE2E2';
+      dom.resStatusBadge.style.color = '#B91C1C';
+      dom.resFeedbackText.textContent = 'Revise this NCERT chapter carefully and consult Sir at +91 8448467381 for doubt clearing.';
+    }
+
+    // Render Solutions
+    if (Array.isArray(rec.solutions) && rec.solutions.length > 0) {
+      renderSavedSolutionsList(rec.solutions);
+    } else if (state.questions && state.questions.length > 0) {
+      renderSolutionsList();
+    }
+  };
+
+  function renderSavedSolutionsList(solutions) {
+    if (!dom.solutionsList || !Array.isArray(solutions)) return;
+    dom.solutionsList.innerHTML = '';
+
+    solutions.forEach(sol => {
+      const isCorrect = !!sol.isCorrect;
+      const isUnanswered = sol.userAnswerIndex === null || sol.userAnswerLetter === '-' || sol.userAnswerText === 'Not Attempted';
+
+      const card = document.createElement('div');
+      card.className = 'print-question-card';
+      card.style.cssText = `
+        background: #FFFFFF;
+        border: 1.5px solid ${isCorrect ? '#86EFAC' : isUnanswered ? '#CBD5E1' : '#FCA5A5'};
+        border-left: 6px solid ${isCorrect ? '#16A34A' : isUnanswered ? '#64748B' : '#DC2626'};
+        border-radius: 8px;
+        padding: 16px 18px;
+        margin-bottom: 18px;
+        page-break-inside: avoid;
+        break-inside: avoid;
+      `;
+
+      card.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+          <div>
+            <strong style="font-size: 14.5px; color: #0F172A;">Question ${sol.qIndex} of ${solutions.length}</strong>
+            <span style="font-size: 12px; color: #64748B; margin-left: 8px;">(Marks: 1.00)</span>
+          </div>
+          <span style="font-weight: 800; font-size: 12.5px; padding: 3px 10px; border-radius: 20px; background: ${isCorrect ? '#DCFCE7' : isUnanswered ? '#F1F5F9' : '#FEE2E2'}; color: ${isCorrect ? '#16A34A' : isUnanswered ? '#475569' : '#DC2626'}; border: 1px solid ${isCorrect ? '#86EFAC' : isUnanswered ? '#CBD5E1' : '#FCA5A5'};">
+            ${isCorrect ? '✔ CORRECT (+1.00)' : isUnanswered ? '○ NOT ATTEMPTED (0.00)' : '✖ INCORRECT (0.00)'}
+          </span>
+        </div>
+
+        <div style="font-size: 14px; font-weight: 600; color: #1E293B; line-height: 1.45; margin-bottom: 4px;">
+          ${escapeHtml(sol.questionText)}
+        </div>
+        ${sol.questionHindi ? `<div style="font-size: 13px; color: #64748B; line-height: 1.4; margin-bottom: 8px;">${escapeHtml(sol.questionHindi)}</div>` : ''}
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0;">
+          <div style="border: 1.5px solid ${isCorrect ? '#86EFAC' : isUnanswered ? '#CBD5E1' : '#FCA5A5'}; background: ${isCorrect ? '#F0FDF4' : isUnanswered ? '#F8FAFC' : '#FEF2F2'}; border-radius: 6px; padding: 8px 10px; font-size: 13px;">
+            <div style="font-size: 11px; font-weight: 700; color: #64748B; text-transform: uppercase;">Your Marked Response:</div>
+            <strong style="color: ${isCorrect ? '#15803D' : isUnanswered ? '#475569' : '#DC2626'}; font-size: 13.5px;">${escapeHtml(sol.userAnswerText)}</strong>
+          </div>
+          <div style="border: 1.5px solid #86EFAC; background: #F0FDF4; border-radius: 6px; padding: 8px 10px; font-size: 13px;">
+            <div style="font-size: 11px; font-weight: 700; color: #059669; text-transform: uppercase;">Official Correct Answer:</div>
+            <strong style="color: #15803D; font-size: 13.5px;">${escapeHtml(sol.correctAnswerText)}</strong>
+          </div>
+        </div>
+
+        ${sol.explanation ? `
+          <div style="background: #F8FAFC; border: 1px dashed #CBD5E1; padding: 10px 14px; border-radius: 6px; font-size: 12.5px; color: #334155; margin-top: 8px; line-height: 1.45;">
+            <strong style="color: #0F172A;">&#128161; NCERT Solution &amp; Concept Explanation:</strong> ${escapeHtml(sol.explanation)}
           </div>
         ` : ''}
       `;

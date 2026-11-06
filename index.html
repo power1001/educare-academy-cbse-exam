@@ -179,6 +179,10 @@
           <span class="tag-label">Active Chapter:</span>
           <span class="tag-val" id="headerActiveChapter">Chemical Reactions</span>
         </div>
+        <button type="button" class="btn-check-result-header" id="btnHeaderCheckResult" onclick="window.openResultLookupModal()" style="background: #10B981; color: #FFFFFF; border: none; padding: 7px 14px; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(16,185,129,0.3);">
+          <span>&#128196;</span>
+          <span>Check Result / रिजल्ट निकालें</span>
+        </button>
         <div class="official-security-status" id="headerSecurityStatus">
           <span class="status-dot"></span>
           <span class="status-txt">System Ready</span>
@@ -216,6 +220,25 @@
               &#9203; Access Time Left: <strong id="portalScheduleCountdown">Calculating...</strong>
             </div>
           </div>
+        </div>
+
+        <!-- Check Result Quick Access Card -->
+        <div class="result-quick-card" style="background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%); border: 1.5px solid #86EFAC; border-radius: 8px; padding: 14px 18px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; box-shadow: 0 2px 6px rgba(16,185,129,0.12);">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="font-size: 28px; line-height: 1;">&#128196;</div>
+            <div>
+              <div style="font-size: 14px; font-weight: 800; color: #14532D; margin-bottom: 2px;">
+                Already Given Today's Exam? Download / Print Your Official Marksheet
+              </div>
+              <div style="font-size: 12px; color: #166534;">
+                Enter your Roll Number to instantly retrieve, view, and print your CBSE Class 10th Science scorecard with solutions.
+              </div>
+            </div>
+          </div>
+          <button type="button" onclick="window.openResultLookupModal()" class="btn-action" style="background: #15803D; color: #FFFFFF; border: none; font-weight: 700; padding: 9px 18px; border-radius: 6px; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(21,128,61,0.25);">
+            <span>&#128269;</span>
+            <span>Result निकालें / Check Result</span>
+          </button>
         </div>
 
         <!-- Official Announcement Header -->
@@ -847,8 +870,37 @@
         </button>
       </div>
     </div>
+  <!-- ============================================================== -->
+  <!-- STUDENT RESULT & OFFICIAL MARKSHEET LOOKUP MODAL               -->
+  <!-- ============================================================== -->
+  <div class="admin-modal-overlay" id="resultLookupModal" style="display: none; align-items: center; justify-content: center; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75); z-index: 99999; backdrop-filter: blur(4px);">
+    <div class="admin-modal-box" style="background: #FFFFFF; border-radius: 12px; max-width: 500px; width: 90%; text-align: left; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; border-bottom: 1.5px solid #F1F5F9; padding-bottom: 12px;">
+        <div>
+          <h3 style="font-size: 17px; font-weight: 800; color: #0B2545; margin: 0; display: flex; align-items: center; gap: 8px;">
+            <span>&#128196;</span>
+            <span>Check Result &amp; Marksheet (रिजल्ट निकालें)</span>
+          </h3>
+          <p style="font-size: 12px; color: #64748B; margin: 3px 0 0;">Educare Academy &bull; CBSE Class 10th Science Assessment Ledger</p>
+        </div>
+        <button type="button" onclick="window.closeResultLookupModal()" style="border: none; background: transparent; font-size: 26px; cursor: pointer; color: #94A3B8; line-height: 1;" title="Close">&times;</button>
+      </div>
+
+      <p style="font-size: 13px; color: #334155; margin-bottom: 14px; line-height: 1.45;">
+        Apna Roll Number enter karein (jaise <code style="background: #F1F5F9; color: #1D4ED8; font-weight: 700; padding: 2px 5px; border-radius: 4px;">26CBSEBRD001</code> ya sirf <code style="background: #F1F5F9; color: #1D4ED8; font-weight: 700; padding: 2px 5px; border-radius: 4px;">001</code>) aur turant apna verified scorecard nikalein.
+      </p>
+
+      <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+        <input type="text" id="inputSearchRoll" placeholder="e.g. 26CBSEBRD001 or 001" style="flex: 1; padding: 11px 14px; border: 1.5px solid #CBD5E1; border-radius: 6px; font-size: 14px; font-weight: 700; text-transform: uppercase;" onkeydown="if(event.key==='Enter') window.handleSearchStudentResult()">
+        <button type="button" id="btnSearchStudentResult" onclick="window.handleSearchStudentResult()" class="btn-primary" style="padding: 11px 18px; font-size: 13.5px; font-weight: 700; background: #2563EB; cursor: pointer;">
+          &#128269; Search Result
+        </button>
+      </div>
+
+      <div id="resultLookupStatus" style="font-size: 13px; margin-top: 10px;"></div>
+    </div>
   </div>
 
-  <script src="app.js?v=20261105_05"></script>
+  <script src="app.js?v=20261105_06"></script>
 </body>
 </html>
