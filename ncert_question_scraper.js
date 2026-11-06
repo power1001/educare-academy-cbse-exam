@@ -50,6 +50,9 @@ function fetchUrl(url, timeoutMs = 8000) {
   });
 }
 
+const IS_VERCEL = !!(process.env.VERCEL || process.env.NOW_REGION);
+const DATA_DIR = IS_VERCEL ? '/tmp' : __dirname;
+
 /**
  * Scrapes or dynamically updates a chapter's 50-question pool from NCERT sources
  */
@@ -57,7 +60,10 @@ async function scrapeQuestionsForChapter(chapterId) {
   const chapter = NCERT_CHAPTERS.find(c => c.id === Number(chapterId)) || NCERT_CHAPTERS[0];
   console.log(`[SCRAPER] Starting online scrape for Class 10 NCERT Chapter ${chapter.id}: ${chapter.name}...`);
 
-  const questionsDbPath = path.join(__dirname, 'cbse10_questions.json');
+  const tmpPath = path.join(DATA_DIR, 'cbse10_questions.json');
+  const basePath = path.join(__dirname, 'cbse10_questions.json');
+  const questionsDbPath = fs.existsSync(tmpPath) ? tmpPath : basePath;
+
   let currentDb = { chapters: NCERT_CHAPTERS, pools: {} };
   if (fs.existsSync(questionsDbPath)) {
     try {
@@ -94,7 +100,29 @@ async function scrapeQuestionsForChapter(chapterId) {
   currentDb.pools[String(chapter.id)] = updatedPool;
   currentDb.chapters = NCERT_CHAPTERS;
 
-  fs.writeFileSync(questionsDbPath, JSON.stringify(currentDb, null, 2), 'utf-8');
+  // Safe write to DATA_DIR (/tmp on Vercel)
+  try {
+    fs.writeFileSync(path.join(DATA_DIR, 'cbse10_questions.json'), JSON.stringify(currentDb, null, 2), 'utf-8');
+  } catch (err) {
+    console.warn('[SCRAPER] Write to DATA_DIR skipped:', err.message);
+  }
+
+  // Safe write to local basePath if not on Vercel
+  if (!IS_VERCEL) {
+    try {
+      fs.writeFileSync(basePath, JSON.stringify(currentDb, null, 2), 'utf-8');
+    } catch (err) {
+      console.warn('[SCRAPER] Local write skipped:', err.message);
+    }
+  }
+
+  // Also sync in-memory cache in question_manager if available
+  try {
+    const qManager = require('./question_manager');
+    if (qManager && qManager.setQuestionsDb) {
+      qManager.setQuestionsDb(currentDb);
+    }
+  } catch (e) {}
 
   console.log(`[SCRAPER] Successfully updated 50 questions for Chapter ${chapter.id} (${chapter.name}).`);
   return {

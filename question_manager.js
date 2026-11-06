@@ -14,9 +14,17 @@ const fs = require('fs');
 const path = require('path');
 const { NCERT_CHAPTERS } = require('./ncert_question_scraper');
 
-const HISTORY_FILE = path.join(__dirname, 'daily_question_history.json');
-const ACTIVE_CONFIG_FILE = path.join(__dirname, 'active_test_config.json');
+const IS_VERCEL = !!(process.env.VERCEL || process.env.NOW_REGION);
+const DATA_DIR = IS_VERCEL ? '/tmp' : __dirname;
+
+const HISTORY_FILE = path.join(DATA_DIR, 'daily_question_history.json');
+const ACTIVE_CONFIG_FILE = path.join(DATA_DIR, 'active_test_config.json');
 const QUESTIONS_DB_FILE = path.join(__dirname, 'cbse10_questions.json');
+
+// In-memory runtime caches for reliable execution in serverless read-only environments
+let inMemoryHistory = null;
+let inMemoryActiveConfig = null;
+let inMemoryQuestionsDb = null;
 
 function getTodayString() {
   const d = new Date();
@@ -30,9 +38,14 @@ function getYesterdayString() {
 }
 
 function loadHistory() {
-  if (fs.existsSync(HISTORY_FILE)) {
+  if (inMemoryHistory) return inMemoryHistory;
+  const tmpHistory = path.join(DATA_DIR, 'daily_question_history.json');
+  const baseHistory = path.join(__dirname, 'daily_question_history.json');
+  const target = fs.existsSync(tmpHistory) ? tmpHistory : baseHistory;
+  if (fs.existsSync(target)) {
     try {
-      return JSON.parse(fs.readFileSync(HISTORY_FILE, 'utf-8'));
+      inMemoryHistory = JSON.parse(fs.readFileSync(target, 'utf-8'));
+      return inMemoryHistory;
     } catch (e) {
       console.warn('Could not parse daily question history, initializing fresh.');
     }
@@ -41,17 +54,23 @@ function loadHistory() {
 }
 
 function saveHistory(data) {
+  inMemoryHistory = data;
   try {
     fs.writeFileSync(HISTORY_FILE, JSON.stringify(data, null, 2), 'utf-8');
   } catch (e) {
-    console.error('Error saving daily question history:', e);
+    console.warn('[QUESTION MGR] History disk write skipped (in-memory preserved):', e.message);
   }
 }
 
 function getQuestionsDb() {
-  if (fs.existsSync(QUESTIONS_DB_FILE)) {
+  if (inMemoryQuestionsDb) return inMemoryQuestionsDb;
+  const tmpPath = path.join(DATA_DIR, 'cbse10_questions.json');
+  const basePath = path.join(__dirname, 'cbse10_questions.json');
+  const targetPath = fs.existsSync(tmpPath) ? tmpPath : basePath;
+  if (fs.existsSync(targetPath)) {
     try {
-      return JSON.parse(fs.readFileSync(QUESTIONS_DB_FILE, 'utf-8'));
+      inMemoryQuestionsDb = JSON.parse(fs.readFileSync(targetPath, 'utf-8'));
+      return inMemoryQuestionsDb;
     } catch (e) {
       console.error('Error reading questions DB:', e);
     }
@@ -59,10 +78,27 @@ function getQuestionsDb() {
   return { chapters: NCERT_CHAPTERS, pools: {} };
 }
 
-function getActiveConfig() {
-  if (fs.existsSync(ACTIVE_CONFIG_FILE)) {
+function setQuestionsDb(db) {
+  inMemoryQuestionsDb = db;
+  try {
+    fs.writeFileSync(path.join(DATA_DIR, 'cbse10_questions.json'), JSON.stringify(db, null, 2), 'utf-8');
+  } catch(e) {}
+  if (!IS_VERCEL) {
     try {
-      return JSON.parse(fs.readFileSync(ACTIVE_CONFIG_FILE, 'utf-8'));
+      fs.writeFileSync(path.join(__dirname, 'cbse10_questions.json'), JSON.stringify(db, null, 2), 'utf-8');
+    } catch(e) {}
+  }
+}
+
+function getActiveConfig() {
+  if (inMemoryActiveConfig) return inMemoryActiveConfig;
+  const tmpCfg = path.join(DATA_DIR, 'active_test_config.json');
+  const baseCfg = path.join(__dirname, 'active_test_config.json');
+  const target = fs.existsSync(tmpCfg) ? tmpCfg : baseCfg;
+  if (fs.existsSync(target)) {
+    try {
+      inMemoryActiveConfig = JSON.parse(fs.readFileSync(target, 'utf-8'));
+      return inMemoryActiveConfig;
     } catch (e) {}
   }
   return {
@@ -81,10 +117,11 @@ function getActiveConfig() {
 }
 
 function saveActiveConfig(cfg) {
+  inMemoryActiveConfig = cfg;
   try {
     fs.writeFileSync(ACTIVE_CONFIG_FILE, JSON.stringify(cfg, null, 2), 'utf-8');
   } catch (e) {
-    console.error('Error saving active test config:', e);
+    console.warn('[QUESTION MGR] Active config disk write skipped (in-memory preserved):', e.message);
   }
 }
 
@@ -111,8 +148,12 @@ function getWeeklyActiveChapter() {
  * - 5 questions repeated from yesterday
  * - 20 fresh questions from the other 25 of the 50-pool
  */
-function ensureTodayQuestions(forceRegenerate = false) {
-  const activeChapter = getWeeklyActiveChapter();
+function ensureTodayQuestions(forceRegenerate = false, overrideChapterId = null) {
+  let activeChapter = getWeeklyActiveChapter();
+  if (overrideChapterId) {
+    const found = NCERT_CHAPTERS.find(c => c.id === Number(overrideChapterId));
+    if (found) activeChapter = found;
+  }
   const chapterId = activeChapter.id;
   const todayStr = getTodayString();
   const yesterdayStr = getYesterdayString();
@@ -229,7 +270,7 @@ function formatWhatsAppDailyQuestions(chapterId = null) {
 
   const db = getQuestionsDb();
   const pool = (db.pools && db.pools[String(chId)]) || [];
-  const todaySelection = ensureTodayQuestions();
+  const todaySelection = ensureTodayQuestions(false, chId);
 
   const selectedQuestions = pool.filter(q => todaySelection.selectedIds.includes(q.id));
   const repeatedSet = new Set(todaySelection.repeatedIds);
@@ -357,6 +398,31 @@ function shuffleQuestionsBySeed(questionsList, seedStr) {
   return result;
 }
 
+/**
+ * Pins or sets a chapter as active test and generates today's 25 questions
+ */
+function setActiveChapter(chapterId) {
+  const ch = NCERT_CHAPTERS.find(c => c.id === Number(chapterId)) || NCERT_CHAPTERS[0];
+  const currentCfg = getActiveConfig();
+  const db = getQuestionsDb();
+  const fullPool = (db.pools && db.pools[String(ch.id)]) || [];
+
+  const todaySelection = ensureTodayQuestions(true, ch.id);
+  const updated = {
+    ...currentCfg,
+    activeChapterId: ch.id,
+    activeChapterName: ch.name,
+    activeChapterHindi: ch.hindi,
+    selectedQuestionIds: todaySelection.selectedIds || Array.from({ length: 25 }, (_, i) => i + 1),
+    repeatedQuestionIds: todaySelection.repeatedIds || [],
+    freshQuestionIds: todaySelection.freshIds || [],
+    todayDate: todaySelection.date,
+    lastUpdated: new Date().toISOString()
+  };
+  saveActiveConfig(updated);
+  return updated;
+}
+
 module.exports = {
   NCERT_CHAPTERS,
   getWeeklyActiveChapter,
@@ -365,5 +431,7 @@ module.exports = {
   shuffleQuestionsBySeed,
   getActiveConfig,
   saveActiveConfig,
-  getQuestionsDb
+  getQuestionsDb,
+  setQuestionsDb,
+  setActiveChapter
 };

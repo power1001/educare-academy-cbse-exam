@@ -3811,47 +3811,57 @@
     // -------------------------------------------------------------
     async function handleScrapeQuestions() {
       const chapter = document.getElementById('selectChapterForScrape').value;
+      const chId = parseInt(chapter, 10) || 1;
       const btn = document.getElementById('btnScrapeQuestions');
       const statusText = document.getElementById('scrapeStatusText');
+      const authKey = sessionStorage.getItem('educare_admin_auth') || 'Rockey6974@';
 
       btn.disabled = true;
       btn.textContent = 'Scraping NCERT Internet...';
-      statusText.textContent = 'Connecting to educational sources and scraping 50 NCERT questions...';
+      statusText.innerHTML = '<span style="color: #0284C7; font-weight: 600;">⏳ Connecting to educational sources and scraping 50 NCERT questions...</span>';
 
       try {
         const res = await fetch('/api/admin/scrape-questions', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ chapter: parseInt(chapter) })
+          headers: { 
+            'Content-Type': 'application/json',
+            'x-admin-key': authKey
+          },
+          body: JSON.stringify({ 
+            chapterId: chId, 
+            chapter: chId, 
+            adminPassword: authKey 
+          })
         });
         const data = await res.json();
         if (data.success) {
+          const chName = data.chapterName || `Chapter ${chId}`;
           statusText.innerHTML = `
             <div style="background: #ECFDF5; border: 1.5px solid #10B981; border-radius: 8px; padding: 12px; margin-top: 10px;">
               <div style="font-size: 13px; font-weight: 700; color: #065F46; margin-bottom: 4px;">
-                &#10004; Scrape Successful! 50 Fresh NCERT Questions Updated in Pool.
+                &#10004; Scrape Successful! 50 Fresh NCERT Questions Updated for Ch ${chId}: ${escapeHtml(chName)}.
               </div>
               <div style="font-size: 12px; color: #047857; margin-bottom: 10px;">
                 Today's 25 Questions (5 Repeating + 20 Fresh) are ready in <strong>Designed PDF</strong> &amp; WhatsApp formats:
               </div>
               <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                <a href="/question-paper?chapterId=${chapter}" target="_blank" class="btn-action" style="background: #2563EB; color: white; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 6px; font-size: 11.5px; font-weight: 700;">
+                <a href="/question-paper?chapterId=${chId}" target="_blank" class="btn-action" style="background: #2563EB; color: white; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 6px; font-size: 11.5px; font-weight: 700;">
                   &#128424; View &amp; Print PDF Paper
                 </a>
-                <a href="/api/admin/download-questions-pdf?chapterId=${chapter}" class="btn-action" style="background: #DC2626; color: white; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 6px; font-size: 11.5px; font-weight: 700;">
+                <a href="/api/admin/download-questions-pdf?chapterId=${chId}" class="btn-action" style="background: #DC2626; color: white; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 6px; font-size: 11.5px; font-weight: 700;">
                   &#128196; Download .PDF File
                 </a>
-                <button type="button" class="btn-action" onclick="shareDailyQuestionsWhatsApp()" style="background: #25D366; color: white; border: none; font-size: 11.5px; font-weight: 700; padding: 6px 12px; border-radius: 6px;">
+                <button type="button" class="btn-action" onclick="shareDailyQuestionsWhatsApp(${chId})" style="background: #25D366; color: white; border: none; font-size: 11.5px; font-weight: 700; padding: 6px 12px; border-radius: 6px;">
                   &#128172; Send on WhatsApp (8448467381)
                 </button>
               </div>
             </div>
           `;
         } else {
-          statusText.innerHTML = `<span style="color: #DC2626;">⚠ ${data.message}</span>`;
+          statusText.innerHTML = `<span style="color: #DC2626; font-weight: 600;">⚠ ${escapeHtml(data.message || 'Scrape failed')}</span>`;
         }
       } catch (err) {
-        statusText.innerHTML = `<span style="color: #DC2626;">⚠ Network failure connecting to scraper engine.</span>`;
+        statusText.innerHTML = `<span style="color: #DC2626; font-weight: 600;">⚠ Network failure connecting to scraper engine.</span>`;
       } finally {
         btn.disabled = false;
         btn.innerHTML = '&#127760; Scrape 50 Pool';
@@ -3861,9 +3871,10 @@
     // -------------------------------------------------------------
     // WHATSAPP DAILY QUESTIONS DISPATCH (+91 8448467381)
     // -------------------------------------------------------------
-    async function shareDailyQuestionsWhatsApp() {
+    async function shareDailyQuestionsWhatsApp(chapterId) {
       try {
-        const res = await fetch('/api/admin/whatsapp-daily-questions');
+        const url = chapterId ? `/api/admin/whatsapp-daily-questions?chapterId=${chapterId}` : '/api/admin/whatsapp-daily-questions';
+        const res = await fetch(url);
         const data = await res.json();
         if (data.success && data.whatsappUrl) {
           window.open(data.whatsappUrl, '_blank');

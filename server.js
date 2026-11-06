@@ -938,14 +938,17 @@ async function requestHandler(req, res) {
         sendJson(res, 401, { success: false, error: 'UNAUTHORIZED_ADMIN', message: '🚫 Admin Authorization Required.' });
         return;
       }
-      const chId = parseInt(body.chapterId || 1, 10);
+      const chId = parseInt(body.chapterId || body.chapter || 1, 10);
       console.log(`[SCRAPER API] Admin requested live NCERT scrape for chapter ${chId}...`);
       const scrapeResult = await ncertScraper.scrapeQuestionsForChapter(chId);
-      // Re-trigger daily question selection for refreshed pool
-      questionManager.ensureTodayQuestions(true);
+      // Re-trigger daily question selection for refreshed pool and activate chapter
+      questionManager.setActiveChapter(chId);
       sendJson(res, 200, {
         success: true,
         message: `Successfully scraped 50 verified NCERT Class 10 questions for Chapter ${chId} (${scrapeResult.chapterName}) from internet.`,
+        chapterId: chId,
+        chapterName: scrapeResult.chapterName,
+        chapterHindi: scrapeResult.chapterHindi,
         scrapeResult
       });
       return;
