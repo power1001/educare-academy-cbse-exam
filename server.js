@@ -51,38 +51,236 @@ const questionManager = require('./question_manager');
 const ncertScraper = require('./ncert_question_scraper');
 const pdfGenerator = require('./pdf_generator');
 
-// Daily 1:00 AM IST Proctoring Media Auto-Cleanup
+// In-memory real-time active exam sessions map
+const activeExamSessions = new Map();
+
+// Helper: Convert epoch ms to Indian Standard Time (IST) date string YYYY-MM-DD
+function getIstDateParts(epochMs) {
+  try {
+    return new Date(epochMs).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+  } catch (e) {
+    const istMs = epochMs + (5.5 * 60 * 60 * 1000);
+    const d = new Date(istMs);
+    const y = d.getUTCFullYear();
+    const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(d.getUTCDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+}
+
+// Helper: Given an exam completion timestamp, compute the 1:00 AM IST cutoff of the NEXT day
+function getExamExpirationCutoffMs(examTimestampMs) {
+  const examDateStr = getIstDateParts(examTimestampMs); // e.g. "2026-11-08"
+  const [year, month, day] = examDateStr.split('-').map(Number);
+  
+  // Calculate next day date
+  const d = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+  d.setUTCDate(d.getUTCDate() + 1);
+  
+  const nextYear = d.getUTCFullYear();
+  const nextMonth = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const nextDay = String(d.getUTCDate()).padStart(2, '0');
+  
+  // 01:00:00 AM IST next day (e.g. "2026-11-09T01:00:00+05:30")
+  const cutoffIso = `${nextYear}-${nextMonth}-${nextDay}T01:00:00+05:30`;
+  return Date.parse(cutoffIso);
+}
+
+// Helper: Extract valid epoch ms from record's timestamp or completedAt string
+function extractRecordTimestamp(record) {
+  if (!record) return 0;
+  if (record.timestamp && typeof record.timestamp === 'number' && !isNaN(record.timestamp) && record.timestamp > 0) {
+    return record.timestamp;
+  }
+  if (record.completedAt) {
+    const str = String(record.completedAt).trim();
+    const parsed = Date.parse(str);
+    if (!isNaN(parsed) && parsed > 0) return parsed;
+
+    // Parse "6/11/2026, 3:44:40 pm" or "06-11-2026 15:44:40"
+    const match = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})(?:,\s*(\d{1,2}):(\d{1,2}):(\d{1,2})\s*(am|pm)?)?/i);
+    if (match) {
+      const day = parseInt(match[1], 10);
+      const month = parseInt(match[2], 10);
+      const year = parseInt(match[3], 10);
+      let hour = match[4] ? parseInt(match[4], 10) : 12;
+      const min = match[5] ? parseInt(match[5], 10) : 0;
+      const sec = match[6] ? parseInt(match[6], 10) : 0;
+      const ampm = (match[7] || '').toLowerCase();
+      if (ampm === 'pm' && hour < 12) hour += 12;
+      if (ampm === 'am' && hour === 12) hour = 0;
+
+      const isoStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}+05:30`;
+      const t = Date.parse(isoStr);
+      if (!isNaN(t)) return t;
+    }
+  }
+  return 0;
+}
+
+// Helper: Check if an exam record has passed next morning 1:00 AM IST cutoff
+function isRecordExpired(record, nowMs = Date.now()) {
+  const ts = extractRecordTimestamp(record);
+  if (!ts || ts <= 0) return true; // Malformed/legacy untimestamped records get purged
+  const cutoff = getExamExpirationCutoffMs(ts);
+  return nowMs >= cutoff;
+}
+
+// Helper: Safely unlink media files associated with a student roll
+function deleteMediaForRoll(roll, photoUrl, videoUrl) {
+  try {
+    const tryUnlink = (relPath) => {
+      if (!relPath) return;
+      const candidates = [
+        path.join(DATA_DIR, relPath),
+        path.join(__dirname, relPath)
+      ];
+      candidates.forEach(p => {
+        try {
+          if (fs.existsSync(p)) fs.unlinkSync(p);
+        } catch (e) {}
+      });
+    };
+
+    tryUnlink(photoUrl);
+    tryUnlink(videoUrl);
+
+    if (roll) {
+      [PHOTOS_DIR, VIDEOS_DIR].forEach(dir => {
+        try {
+          if (fs.existsSync(dir)) {
+            const files = fs.readdirSync(dir);
+            files.forEach(f => {
+              if (f.startsWith(roll)) {
+                try {
+                  fs.unlinkSync(path.join(dir, f));
+                } catch (e) {}
+              }
+            });
+          }
+        } catch (e) {}
+      });
+    }
+  } catch (err) {
+    console.warn('[MEDIA DELETE WARNING]', err.message);
+  }
+}
+
+// Daily Proctoring Media File Sweeper
 function cleanupProctorMedia() {
   let videoCount = 0;
   let photoCount = 0;
   try {
-    if (fs.existsSync(VIDEOS_DIR)) {
-      const vFiles = fs.readdirSync(VIDEOS_DIR);
-      vFiles.forEach(f => {
-        try {
-          fs.unlinkSync(path.join(VIDEOS_DIR, f));
-          videoCount++;
-        } catch (e) {}
-      });
+    const cleanDir = (dir) => {
+      let count = 0;
+      if (fs.existsSync(dir)) {
+        const files = fs.readdirSync(dir);
+        files.forEach(f => {
+          try {
+            fs.unlinkSync(path.join(dir, f));
+            count++;
+          } catch (e) {}
+        });
+      }
+      return count;
+    };
+
+    videoCount += cleanDir(VIDEOS_DIR);
+    photoCount += cleanDir(PHOTOS_DIR);
+
+    if (DATA_DIR !== __dirname) {
+      photoCount += cleanDir(path.join(__dirname, 'records', 'photos'));
+      videoCount += cleanDir(path.join(__dirname, 'records', 'videos'));
     }
-    if (fs.existsSync(PHOTOS_DIR)) {
-      const pFiles = fs.readdirSync(PHOTOS_DIR);
-      pFiles.forEach(f => {
-        try {
-          fs.unlinkSync(path.join(PHOTOS_DIR, f));
-          photoCount++;
-        } catch (e) {}
-      });
-    }
-    console.log(`[PROCTOR MEDIA AUTO-PURGE 1:00 AM IST] Successfully removed ${videoCount} videos and ${photoCount} captured photos. Clean disk ready for next exam.`);
+
+    console.log(`[PROCTOR MEDIA PURGE] Removed ${videoCount} videos and ${photoCount} captured photos.`);
     return { success: true, videosDeleted: videoCount, photosDeleted: photoCount };
   } catch (err) {
     console.error('Error during proctor media purge:', err);
-    return { success: false, error: err.message };
+    return { success: false, error: err.message, videosDeleted: videoCount, photosDeleted: photoCount };
   }
 }
 
-// 1:00 AM IST Auto-Purge Scheduler (Only in standalone node server)
+// Unified Auto-Purge: Purges previous day exam records & proctor media at 1:00 AM IST cutoff
+let isPurging = false;
+let lastAutoPurgeCheck = 0;
+
+function autoPurgeExpiredRecordsAndMedia(forceAll = false) {
+  if (isPurging) {
+    return { purgedCount: 0, remainingCount: inMemoryCompletedStudents ? inMemoryCompletedStudents.length : 0 };
+  }
+  const now = Date.now();
+  if (!forceAll && (now - lastAutoPurgeCheck < 30000) && inMemoryCompletedStudents !== null) {
+    return { purgedCount: 0, remainingCount: inMemoryCompletedStudents.length };
+  }
+  lastAutoPurgeCheck = now;
+  isPurging = true;
+
+  try {
+    const list = getRawCompletedStudents();
+    if (!Array.isArray(list) || list.length === 0) {
+      if (forceAll) {
+        cleanupProctorMedia();
+        activeExamSessions.clear();
+      }
+      isPurging = false;
+      return { purgedCount: 0, remainingCount: 0 };
+    }
+
+    if (forceAll) {
+      console.log(`[MANUAL TOTAL PURGE] Purging all ${list.length} student records and proctor media files...`);
+      list.forEach(rec => {
+        deleteMediaForRoll(rec.roll, rec.photoUrl, rec.videoUrl);
+      });
+      cleanupProctorMedia();
+      activeExamSessions.clear();
+      inMemoryCompletedStudents = [];
+      saveCompletedStudents([]);
+      isPurging = false;
+      return { purgedCount: list.length, remainingCount: 0 };
+    }
+
+    const valid = [];
+    const expired = [];
+
+    list.forEach(rec => {
+      if (isRecordExpired(rec, now)) {
+        expired.push(rec);
+      } else {
+        valid.push(rec);
+      }
+    });
+
+    if (expired.length > 0) {
+      console.log(`[AUTO-PURGE 1:00 AM IST CUTOFF] Purging ${expired.length} expired exam records (held through 11:59 PM until next day 1:00 AM IST)...`);
+      expired.forEach(rec => {
+        deleteMediaForRoll(rec.roll, rec.photoUrl, rec.videoUrl);
+        if (rec.roll) {
+          activeExamSessions.delete(rec.roll);
+        }
+      });
+
+      inMemoryCompletedStudents = valid;
+      saveCompletedStudents(valid);
+
+      if (valid.length === 0) {
+        cleanupProctorMedia();
+      }
+      console.log(`[AUTO-PURGE COMPLETE] Removed ${expired.length} records. Active unexpired exam records: ${valid.length}.`);
+    } else {
+      inMemoryCompletedStudents = valid;
+    }
+
+    isPurging = false;
+    return { purgedCount: expired.length, remainingCount: valid.length };
+  } catch (err) {
+    console.error('Error during autoPurgeExpiredRecordsAndMedia:', err);
+    isPurging = false;
+    return { purgedCount: 0, remainingCount: (inMemoryCompletedStudents || []).length, error: err.message };
+  }
+}
+
+// 1:00 AM IST Daily Auto-Purge Scheduler (Only in standalone node server)
 let lastPurgeDate = '';
 if (require.main === module) {
   setInterval(() => {
@@ -94,8 +292,8 @@ if (require.main === module) {
 
       // Runs automatically at 01:00 AM IST daily
       if (currentHour === 1 && currentMinute === 0 && lastPurgeDate !== currentDateStr) {
-        console.log(`[DAILY AUTO-PURGE] Triggering 1:00 AM IST proctor media purge for date: ${currentDateStr}...`);
-        cleanupProctorMedia();
+        console.log(`[DAILY 1:00 AM IST AUTO-PURGE] Triggering automated ledger & proctor media purge for date: ${currentDateStr}...`);
+        autoPurgeExpiredRecordsAndMedia(false);
         lastPurgeDate = currentDateStr;
       }
     } catch (e) {
@@ -103,9 +301,6 @@ if (require.main === module) {
     }
   }, 60000);
 }
-
-// In-memory real-time active exam sessions map
-const activeExamSessions = new Map();
 
 const DEFAULT_SCHEDULE = {
   portalOpen: true,
@@ -418,7 +613,7 @@ function saveStudentRoster(roster) {
   return true;
 }
 
-function getCompletedStudents() {
+function getRawCompletedStudents() {
   if (inMemoryCompletedStudents) return inMemoryCompletedStudents;
   try {
     if (fs.existsSync(COMPLETED_FILE)) {
@@ -437,6 +632,13 @@ function getCompletedStudents() {
   }
   inMemoryCompletedStudents = [];
   return inMemoryCompletedStudents;
+}
+
+function getCompletedStudents(allowPurge = true) {
+  if (allowPurge) {
+    autoPurgeExpiredRecordsAndMedia(false);
+  }
+  return getRawCompletedStudents();
 }
 
 function saveCompletedStudents(list) {
@@ -975,7 +1177,7 @@ async function requestHandler(req, res) {
     }
   }
 
-  // 4f. POST /api/admin/clean-proctor-media (Manual trigger for proctor video/photo purge)
+  // 4f. POST /api/admin/clean-proctor-media (Manual trigger for proctor video/photo & results purge)
   if (req.method === 'POST' && reqPath === '/api/admin/clean-proctor-media') {
     try {
       const body = await readJsonBody(req);
@@ -983,15 +1185,26 @@ async function requestHandler(req, res) {
         sendJson(res, 401, { success: false, error: 'UNAUTHORIZED_ADMIN', message: '🚫 Admin Authorization Required.' });
         return;
       }
-      const purgeResult = cleanupProctorMedia();
+      const forceAll = !!(body && (body.purgeAll || body.forceAll || body.clearAll));
+      const purgeResult = autoPurgeExpiredRecordsAndMedia(forceAll);
+      const mediaResult = cleanupProctorMedia();
+      const totalDeletedFiles = (mediaResult.videosDeleted || 0) + (mediaResult.photosDeleted || 0);
+
       sendJson(res, 200, {
         success: true,
-        message: `Proctoring media successfully cleaned. Deleted ${purgeResult.videosDeleted || 0} videos and ${purgeResult.photosDeleted || 0} photos.`,
+        message: forceAll
+          ? `All test records and proctor media purged (${purgeResult.purgedCount} student records, ${totalDeletedFiles} media files removed). Ready for new exam.`
+          : `Purge completed: ${purgeResult.purgedCount} expired records purged, ${purgeResult.remainingCount} active records retained until 1:00 AM IST. ${totalDeletedFiles} media files cleaned.`,
+        purgedRecords: purgeResult.purgedCount,
+        remainingRecords: purgeResult.remainingCount,
+        deletedVideos: mediaResult.videosDeleted || 0,
+        deletedPhotos: mediaResult.photosDeleted || 0,
+        deletedFiles: totalDeletedFiles,
         purgeResult
       });
       return;
     } catch (err) {
-      sendJson(res, 500, { success: false, message: 'Error cleaning proctor media: ' + err.message });
+      sendJson(res, 500, { success: false, message: 'Error cleaning proctor media & records: ' + err.message });
       return;
     }
   }

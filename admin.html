@@ -1993,18 +1993,23 @@
             </div>
 
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 14px;">
-              <!-- Clean Media Box -->
+              <!-- Clean Media & Auto-Purge Box -->
               <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 16px;">
                 <h4 style="font-size: 14px; font-weight: 700; color: #0F172A; margin-bottom: 8px;">
-                  &#129529; Daily 1:00 AM Automated Storage Purge
+                  &#129529; Daily 1:00 AM Automated Result &amp; Media Purge
                 </h4>
-                <p style="font-size: 12px; color: #64748B; margin-bottom: 12px;">
-                  Exam videos and snapshots auto-purge daily at <strong>1:00 AM IST</strong> so server disk never overflows. Manual cleanup also available:
+                <p style="font-size: 12px; color: #475569; line-height: 1.5; margin-bottom: 12px;">
+                  Exam results, scorecards, candidate photos, and proctoring videos remain active on the admin panel all day (until 11:59 PM) and up until morning <strong>1:00 AM IST</strong> of the next day. At 1:00 AM IST, previous day exam results and media auto-purge so candidates can attempt the next daily test with clean storage.
                 </p>
-                <button type="button" class="btn-action" onclick="handleManualProctorPurge()" style="background: #DC2626; color: white; border: none; font-weight: 700;">
-                  &#128465; Purge Media Now (Clean Storage)
-                </button>
-                <div id="purgeStatusText" style="font-size: 11.5px; color: #059669; margin-top: 8px; font-weight: 600;"></div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                  <button type="button" class="btn-action" onclick="handleManualProctorPurge(false)" style="background: #2563EB; color: white; border: none; font-weight: 700; font-size: 12px; padding: 8px 12px;">
+                    &#129529; Purge Expired (1:00 AM Cutoff)
+                  </button>
+                  <button type="button" class="btn-action" onclick="handleManualProctorPurge(true)" style="background: #DC2626; color: white; border: none; font-weight: 700; font-size: 12px; padding: 8px 12px;">
+                    &#9888; Force Clear All (Fresh Start)
+                  </button>
+                </div>
+                <div id="purgeStatusText" style="font-size: 11.5px; color: #059669; margin-top: 10px; font-weight: 600;"></div>
               </div>
 
               <!-- Tab Switch Anti-Cheat Box -->
@@ -3908,26 +3913,35 @@
     }
 
     // -------------------------------------------------------------
-    // DAILY 1:00 AM PROCTORING MEDIA PURGE (MANUAL OVERRIDE)
+    // DAILY 1:00 AM PROCTORING MEDIA & EXAM RESULTS PURGE (MANUAL OVERRIDE)
     // -------------------------------------------------------------
-    async function handleManualProctorPurge() {
-      if (!confirm('Are you sure you want to clean all stored proctoring videos and snapshots now?\n\n(Note: The server also auto-purges them automatically every day at 1:00 AM IST)')) {
-        return;
-      }
+    async function handleManualProctorPurge(forceAll = false) {
+      const confirmMsg = forceAll
+        ? '⚠️ FORCE CLEAR ALL RESULTS & MEDIA?\n\nThis will immediately delete all completed student scorecards, answers, candidate photos, and proctoring videos right now so all students can re-test.\n\nProceed?'
+        : '🧹 PURGE EXPIRED RESULTS & MEDIA (1:00 AM CUTOFF)?\n\nThis will purge only exam results and proctor media from previous days that have passed next day 1:00 AM IST.\n(Today\'s active exam results will NOT be deleted).\n\nProceed?';
+
+      if (!confirm(confirmMsg)) return;
+
       const statusText = document.getElementById('purgeStatusText');
-      statusText.textContent = 'Purging media files...';
+      if (statusText) statusText.textContent = forceAll ? 'Clearing all results and media files...' : 'Purging expired records & media files...';
 
       try {
-        const res = await fetch('/api/admin/clean-proctor-media', { method: 'POST' });
+        const res = await fetch('/api/admin/clean-proctor-media', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ purgeAll: forceAll })
+        });
         const data = await res.json();
         if (data.success) {
-          statusText.innerHTML = `✓ <strong>Purge Complete:</strong> ${data.message} (${data.deletedFiles} files removed). Storage cleaned!`;
-          loadData();
+          if (statusText) {
+            statusText.innerHTML = `✓ <strong>Purge Success:</strong> ${data.message}`;
+          }
+          await loadData();
         } else {
-          statusText.innerHTML = `<span style="color:#DC2626;">⚠ ${data.message}</span>`;
+          if (statusText) statusText.innerHTML = `<span style="color:#DC2626;">⚠ ${data.message}</span>`;
         }
       } catch (err) {
-        statusText.innerHTML = `<span style="color:#DC2626;">⚠ Request failed.</span>`;
+        if (statusText) statusText.innerHTML = `<span style="color:#DC2626;">⚠ Request failed: ${err.message}</span>`;
       }
     }
 
